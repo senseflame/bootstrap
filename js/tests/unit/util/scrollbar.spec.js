@@ -8,7 +8,7 @@ describe('ScrollBar', () => {
   const parseInt = arg => Number.parseInt(arg, 10)
   const getPaddingX = el => parseInt(window.getComputedStyle(el).paddingRight)
   const getMarginX = el => parseInt(window.getComputedStyle(el).marginRight)
-  const getOverFlow = el => el.style.overflow
+  const getOverFlow = ({ style }) => style.overflow
   const getPaddingAttr = el => Manipulator.getDataAttribute(el, 'padding-right')
   const getMarginAttr = el => Manipulator.getDataAttribute(el, 'margin-right')
   const getOverFlowAttr = el => Manipulator.getDataAttribute(el, 'overflow')

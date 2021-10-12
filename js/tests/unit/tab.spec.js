@@ -211,12 +211,12 @@ describe('Tab', () => {
       const secondTabTrigger = fixtureEl.querySelector('#triggerProfile')
       const secondTab = new Tab(secondTabTrigger)
 
-      secondTabTrigger.addEventListener('show.bs.tab', ev => {
-        expect(ev.relatedTarget.getAttribute('data-bs-target')).toEqual('#home')
+      secondTabTrigger.addEventListener('show.bs.tab', ({ relatedTarget }) => {
+        expect(relatedTarget.getAttribute('data-bs-target')).toEqual('#home')
       })
 
-      secondTabTrigger.addEventListener('shown.bs.tab', ev => {
-        expect(ev.relatedTarget.getAttribute('data-bs-target')).toEqual('#home')
+      secondTabTrigger.addEventListener('shown.bs.tab', ({ relatedTarget }) => {
+        expect(relatedTarget.getAttribute('data-bs-target')).toEqual('#home')
         expect(secondTabTrigger.getAttribute('aria-selected')).toEqual('true')
         expect(fixtureEl.querySelector('button:not(.active)').getAttribute('aria-selected')).toEqual('false')
         done()
@@ -242,14 +242,14 @@ describe('Tab', () => {
         secondTab.show()
       })
 
-      triggerList[0].addEventListener('hide.bs.tab', ev => {
+      triggerList[0].addEventListener('hide.bs.tab', ({ relatedTarget }) => {
         hideCalled = true
-        expect(ev.relatedTarget.getAttribute('data-bs-target')).toEqual('#profile')
+        expect(relatedTarget.getAttribute('data-bs-target')).toEqual('#profile')
       })
 
-      triggerList[0].addEventListener('hidden.bs.tab', ev => {
+      triggerList[0].addEventListener('hidden.bs.tab', ({ relatedTarget }) => {
         expect(hideCalled).toEqual(true)
-        expect(ev.relatedTarget.getAttribute('data-bs-target')).toEqual('#profile')
+        expect(relatedTarget.getAttribute('data-bs-target')).toEqual('#profile')
         done()
       })
 

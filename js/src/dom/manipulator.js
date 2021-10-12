@@ -68,10 +68,10 @@ const Manipulator = {
     }
   },
 
-  position(element) {
+  position({ offsetTop, offsetLeft }) {
     return {
-      top: element.offsetTop,
-      left: element.offsetLeft
+      top: offsetTop,
+      left: offsetLeft
     }
   }
 }

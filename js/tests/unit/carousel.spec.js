@@ -141,9 +141,9 @@ describe('Carousel', () => {
 
       spyOn(carousel, '_keydown').and.callThrough()
 
-      carouselEl.addEventListener('keydown', event => {
+      carouselEl.addEventListener('keydown', ({ defaultPrevented }) => {
         expect(carousel._keydown).toHaveBeenCalled()
-        expect(event.defaultPrevented).toEqual(false)
+        expect(defaultPrevented).toEqual(false)
         done()
       })
 
@@ -239,7 +239,7 @@ describe('Carousel', () => {
         return carouselEl.querySelector('.carousel-item.active').getAttribute('id')
       }
 
-      carouselEl.addEventListener('slid.bs.carousel', event => {
+      carouselEl.addEventListener('slid.bs.carousel', ({ from }) => {
         const activeId = getActiveId()
 
         if (activeId === 'two') {
@@ -255,7 +255,7 @@ describe('Carousel', () => {
         if (activeId === 'one') {
           // carousel wrapped around and slid from 3rd to 1st slide
           expect(activeId).toEqual('one')
-          expect(event.from + 1).toEqual(3)
+          expect(from + 1).toEqual(3)
           done()
         }
       })
@@ -367,10 +367,10 @@ describe('Carousel', () => {
 
       spyOn(carousel, '_slide').and.callThrough()
 
-      carouselEl.addEventListener('slid.bs.carousel', event => {
+      carouselEl.addEventListener('slid.bs.carousel', ({ direction }) => {
         expect(item.classList.contains('active')).toEqual(true)
         expect(carousel._slide).toHaveBeenCalledWith('right')
-        expect(event.direction).toEqual('right')
+        expect(direction).toEqual('right')
         stylesCarousel.remove()
         delete document.documentElement.ontouchstart
         done()
@@ -412,10 +412,10 @@ describe('Carousel', () => {
 
       spyOn(carousel, '_slide').and.callThrough()
 
-      carouselEl.addEventListener('slid.bs.carousel', event => {
+      carouselEl.addEventListener('slid.bs.carousel', ({ direction }) => {
         expect(item.classList.contains('active')).toEqual(false)
         expect(carousel._slide).toHaveBeenCalledWith('left')
-        expect(event.direction).toEqual('left')
+        expect(direction).toEqual('left')
         stylesCarousel.remove()
         delete document.documentElement.ontouchstart
         done()
@@ -452,10 +452,10 @@ describe('Carousel', () => {
 
       spyOn(carousel, '_slide').and.callThrough()
 
-      carouselEl.addEventListener('slid.bs.carousel', event => {
+      carouselEl.addEventListener('slid.bs.carousel', ({ direction }) => {
         expect(item.classList.contains('active')).toEqual(true)
         expect(carousel._slide).toHaveBeenCalledWith('right')
-        expect(event.direction).toEqual('right')
+        expect(direction).toEqual('right')
         delete document.documentElement.ontouchstart
         restorePointerEvents()
         done()
@@ -491,10 +491,10 @@ describe('Carousel', () => {
 
       spyOn(carousel, '_slide').and.callThrough()
 
-      carouselEl.addEventListener('slid.bs.carousel', event => {
+      carouselEl.addEventListener('slid.bs.carousel', ({ direction }) => {
         expect(item.classList.contains('active')).toEqual(false)
         expect(carousel._slide).toHaveBeenCalledWith('left')
-        expect(event.direction).toEqual('left')
+        expect(direction).toEqual('left')
         delete document.documentElement.ontouchstart
         restorePointerEvents()
         done()
@@ -663,11 +663,11 @@ describe('Carousel', () => {
       const carouselEl = fixtureEl.querySelector('#myCarousel')
       const carousel = new Carousel(carouselEl, {})
 
-      const onSlide = event => {
-        expect(event.direction).toEqual('left')
-        expect(event.relatedTarget.classList.contains('carousel-item')).toEqual(true)
-        expect(event.from).toEqual(0)
-        expect(event.to).toEqual(1)
+      const onSlide = ({ direction, relatedTarget, from, to }) => {
+        expect(direction).toEqual('left')
+        expect(relatedTarget.classList.contains('carousel-item')).toEqual(true)
+        expect(from).toEqual(0)
+        expect(to).toEqual(1)
 
         carouselEl.removeEventListener('slide.bs.carousel', onSlide)
         carouselEl.addEventListener('slide.bs.carousel', onSlide2)
@@ -675,8 +675,8 @@ describe('Carousel', () => {
         carousel.prev()
       }
 
-      const onSlide2 = event => {
-        expect(event.direction).toEqual('right')
+      const onSlide2 = ({ direction }) => {
+        expect(direction).toEqual('right')
         done()
       }
 
@@ -698,11 +698,11 @@ describe('Carousel', () => {
       const carouselEl = fixtureEl.querySelector('#myCarousel')
       const carousel = new Carousel(carouselEl, {})
 
-      const onSlid = event => {
-        expect(event.direction).toEqual('left')
-        expect(event.relatedTarget.classList.contains('carousel-item')).toEqual(true)
-        expect(event.from).toEqual(0)
-        expect(event.to).toEqual(1)
+      const onSlid = ({ direction, relatedTarget, from, to }) => {
+        expect(direction).toEqual('left')
+        expect(relatedTarget.classList.contains('carousel-item')).toEqual(true)
+        expect(from).toEqual(0)
+        expect(to).toEqual(1)
 
         carouselEl.removeEventListener('slid.bs.carousel', onSlid)
         carouselEl.addEventListener('slid.bs.carousel', onSlid2)
@@ -710,8 +710,8 @@ describe('Carousel', () => {
         carousel.prev()
       }
 
-      const onSlid2 = event => {
-        expect(event.direction).toEqual('right')
+      const onSlid2 = ({ direction }) => {
+        expect(direction).toEqual('right')
         done()
       }
 

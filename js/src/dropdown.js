@@ -246,7 +246,7 @@ class Dropdown extends BaseComponent {
     }
 
     const popperConfig = this._getPopperConfig()
-    const isDisplayStatic = popperConfig.modifiers.find(modifier => modifier.name === 'applyStyles' && modifier.enabled === false)
+    const isDisplayStatic = popperConfig.modifiers.find(({ name, enabled }) => name === 'applyStyles' && enabled === false)
 
     this._popper = Popper.createPopper(referenceElement, this._menu, popperConfig)
 

@@ -71,10 +71,10 @@ class FocusTrap {
   }
 
   // Private
-  _handleFocusin(event) {
+  _handleFocusin({ target }) {
     const { trapElement } = this._config
 
-    if (event.target === document || event.target === trapElement || trapElement.contains(event.target)) {
+    if (target === document || target === trapElement || trapElement.contains(target)) {
       return
     }
 
@@ -89,12 +89,12 @@ class FocusTrap {
     }
   }
 
-  _handleKeydown(event) {
-    if (event.key !== TAB_KEY) {
+  _handleKeydown({ key, shiftKey }) {
+    if (key !== TAB_KEY) {
       return
     }
 
-    this._lastTabNavDirection = event.shiftKey ? TAB_NAV_BACKWARD : TAB_NAV_FORWARD
+    this._lastTabNavDirection = shiftKey ? TAB_NAV_BACKWARD : TAB_NAV_FORWARD
   }
 
   _getConfig(config) {

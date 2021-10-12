@@ -189,8 +189,8 @@ class Offcanvas extends BaseComponent {
   }
 
   _addEventListeners() {
-    EventHandler.on(this._element, EVENT_KEYDOWN_DISMISS, event => {
-      if (this._config.keyboard && event.key === ESCAPE_KEY) {
+    EventHandler.on(this._element, EVENT_KEYDOWN_DISMISS, ({ key }) => {
+      if (this._config.keyboard && key === ESCAPE_KEY) {
         this.hide()
       }
     })

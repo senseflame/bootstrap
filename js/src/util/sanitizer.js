@@ -32,12 +32,12 @@ const SAFE_URL_PATTERN = /^(?:(?:https?|mailto|ftp|tel|file|sms):|[^#&/:?]*(?:[#
  */
 const DATA_URL_PATTERN = /^data:(?:image\/(?:bmp|gif|jpeg|jpg|png|tiff|webp)|video\/(?:mpeg|mp4|ogg|webm)|audio\/(?:mp3|oga|ogg|opus));base64,[\d+/a-z]+=*$/i
 
-const allowedAttribute = (attribute, allowedAttributeList) => {
-  const attributeName = attribute.nodeName.toLowerCase()
+const allowedAttribute = ({ nodeName, nodeValue }, allowedAttributeList) => {
+  const attributeName = nodeName.toLowerCase()
 
   if (allowedAttributeList.includes(attributeName)) {
     if (uriAttributes.has(attributeName)) {
-      return Boolean(SAFE_URL_PATTERN.test(attribute.nodeValue) || DATA_URL_PATTERN.test(attribute.nodeValue))
+      return Boolean(SAFE_URL_PATTERN.test(nodeValue) || DATA_URL_PATTERN.test(nodeValue))
     }
 
     return true

@@ -127,8 +127,8 @@ class Modal extends BaseComponent {
     this._setResizeEvent()
 
     EventHandler.on(this._dialog, EVENT_MOUSEDOWN_DISMISS, () => {
-      EventHandler.one(this._element, EVENT_MOUSEUP_DISMISS, event => {
-        if (event.target === this._element) {
+      EventHandler.one(this._element, EVENT_MOUSEUP_DISMISS, ({ target }) => {
+        if (target === this._element) {
           this._ignoreBackdropClick = true
         }
       })
@@ -283,13 +283,13 @@ class Modal extends BaseComponent {
   }
 
   _showBackdrop(callback) {
-    EventHandler.on(this._element, EVENT_CLICK_DISMISS, event => {
+    EventHandler.on(this._element, EVENT_CLICK_DISMISS, ({ target, currentTarget }) => {
       if (this._ignoreBackdropClick) {
         this._ignoreBackdropClick = false
         return
       }
 
-      if (event.target !== event.currentTarget) {
+      if (target !== currentTarget) {
         return
       }
 
@@ -389,8 +389,8 @@ EventHandler.on(document, EVENT_CLICK_DATA_API, SELECTOR_DATA_TOGGLE, function (
     event.preventDefault()
   }
 
-  EventHandler.one(target, EVENT_SHOW, showEvent => {
-    if (showEvent.defaultPrevented) {
+  EventHandler.one(target, EVENT_SHOW, ({ defaultPrevented }) => {
+    if (defaultPrevented) {
       // Only register focus restorer if modal will actually get shown
       return
     }

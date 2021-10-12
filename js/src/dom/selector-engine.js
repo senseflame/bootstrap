@@ -22,15 +22,15 @@ const SelectorEngine = {
     return Element.prototype.querySelector.call(element, selector)
   },
 
-  children(element, selector) {
-    return [].concat(...element.children)
+  children({ children }, selector) {
+    return [].concat(...children)
       .filter(child => child.matches(selector))
   },
 
-  parents(element, selector) {
+  parents({ parentNode }, selector) {
     const parents = []
 
-    let ancestor = element.parentNode
+    let ancestor = parentNode
 
     while (ancestor && ancestor.nodeType === Node.ELEMENT_NODE && ancestor.nodeType !== NODE_TEXT) {
       if (ancestor.matches(selector)) {
@@ -43,8 +43,8 @@ const SelectorEngine = {
     return parents
   },
 
-  prev(element, selector) {
-    let previous = element.previousElementSibling
+  prev({ previousElementSibling }, selector) {
+    let previous = previousElementSibling
 
     while (previous) {
       if (previous.matches(selector)) {
@@ -57,8 +57,8 @@ const SelectorEngine = {
     return []
   },
 
-  next(element, selector) {
-    let next = element.nextElementSibling
+  next({ nextElementSibling }, selector) {
+    let next = nextElementSibling
 
     while (next) {
       if (next.matches(selector)) {

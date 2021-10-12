@@ -72,11 +72,11 @@ describe('Dropdown', () => {
       const dropdown = new Dropdown(btnDropdown, {
         offset: getOffset,
         popperConfig: {
-          onFirstUpdate: state => {
+          onFirstUpdate: ({ rects, placement }) => {
             expect(getOffset).toHaveBeenCalledWith({
-              popper: state.rects.popper,
-              reference: state.rects.reference,
-              placement: state.placement
+              popper: rects.popper,
+              reference: rects.reference,
+              placement
             }, btnDropdown)
             done()
           }
@@ -1031,11 +1031,11 @@ describe('Dropdown', () => {
         showEventTriggered = true
       })
 
-      btnDropdown.addEventListener('shown.bs.dropdown', event => setTimeout(() => {
+      btnDropdown.addEventListener('shown.bs.dropdown', ({ relatedTarget }) => setTimeout(() => {
         expect(btnDropdown.classList.contains('show')).toEqual(true)
         expect(btnDropdown.getAttribute('aria-expanded')).toEqual('true')
         expect(showEventTriggered).toEqual(true)
-        expect(event.relatedTarget).toEqual(btnDropdown)
+        expect(relatedTarget).toEqual(btnDropdown)
         document.body.click()
       }))
 
@@ -1043,11 +1043,11 @@ describe('Dropdown', () => {
         hideEventTriggered = true
       })
 
-      btnDropdown.addEventListener('hidden.bs.dropdown', event => {
+      btnDropdown.addEventListener('hidden.bs.dropdown', ({ relatedTarget }) => {
         expect(btnDropdown.classList.contains('show')).toEqual(false)
         expect(btnDropdown.getAttribute('aria-expanded')).toEqual('false')
         expect(hideEventTriggered).toEqual(true)
-        expect(event.relatedTarget).toEqual(btnDropdown)
+        expect(relatedTarget).toEqual(btnDropdown)
         done()
       })
 
@@ -1345,12 +1345,12 @@ describe('Dropdown', () => {
 
       const triggerDropdown = fixtureEl.querySelector('[data-bs-toggle="dropdown"]')
 
-      triggerDropdown.addEventListener('hide.bs.dropdown', event => {
-        expect(event.clickEvent).toBeUndefined()
+      triggerDropdown.addEventListener('hide.bs.dropdown', ({ clickEvent }) => {
+        expect(clickEvent).toBeUndefined()
       })
 
-      triggerDropdown.addEventListener('hidden.bs.dropdown', event => {
-        expect(event.clickEvent).toBeUndefined()
+      triggerDropdown.addEventListener('hidden.bs.dropdown', ({ clickEvent }) => {
+        expect(clickEvent).toBeUndefined()
         done()
       })
 
@@ -2058,8 +2058,8 @@ describe('Dropdown', () => {
       done()
     }
 
-    dropdown.addEventListener('shown.bs.dropdown', event => {
-      if (event.target.key === 'ArrowDown') {
+    dropdown.addEventListener('shown.bs.dropdown', ({ target }) => {
+      if (target.key === 'ArrowDown') {
         handleArrowDown()
       } else {
         handleArrowUp()

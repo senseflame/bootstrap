@@ -81,10 +81,10 @@ class Swipe {
     execute(this._config.endCallback)
   }
 
-  _move(event) {
-    this._deltaX = event.touches && event.touches.length > 1 ?
+  _move({ touches }) {
+    this._deltaX = touches && touches.length > 1 ?
       0 :
-      event.touches[0].clientX - this._deltaX
+      touches[0].clientX - this._deltaX
   }
 
   _handleSwipe() {
@@ -127,8 +127,8 @@ class Swipe {
     return config
   }
 
-  _eventIsPointerPenTouch(event) {
-    return this._supportPointerEvents && (event.pointerType === POINTER_TYPE_PEN || event.pointerType === POINTER_TYPE_TOUCH)
+  _eventIsPointerPenTouch({ pointerType }) {
+    return this._supportPointerEvents && (pointerType === POINTER_TYPE_PEN || pointerType === POINTER_TYPE_TOUCH)
   }
 
   // Static

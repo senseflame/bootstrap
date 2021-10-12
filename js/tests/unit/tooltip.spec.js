@@ -124,11 +124,11 @@ describe('Tooltip', () => {
       const tooltip = new Tooltip(tooltipEl, {
         offset: getOffset,
         popperConfig: {
-          onFirstUpdate: state => {
+          onFirstUpdate: ({ rects, placement }) => {
             expect(getOffset).toHaveBeenCalledWith({
-              popper: state.rects.popper,
-              reference: state.rects.reference,
-              placement: state.placement
+              popper: rects.popper,
+              reference: rects.reference,
+              placement
             }, tooltipEl)
             done()
           }

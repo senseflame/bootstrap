@@ -163,8 +163,8 @@ class Toast extends BaseComponent {
     }, this._config.delay)
   }
 
-  _onInteraction(event, isInteracting) {
-    switch (event.type) {
+  _onInteraction({ type, relatedTarget }, isInteracting) {
+    switch (type) {
       case 'mouseover':
       case 'mouseout':
         this._hasMouseInteraction = isInteracting
@@ -182,7 +182,7 @@ class Toast extends BaseComponent {
       return
     }
 
-    if (this._element === event.relatedTarget || this._element.contains(event.relatedTarget)) {
+    if (this._element === relatedTarget || this._element.contains(relatedTarget)) {
       return
     }
 
