@@ -1,6 +1,6 @@
 # Ignore docs files
 /_site/
-/dist/
+
 # Hugo files
 /resources/
 /.hugo_build.lock
@@ -41,3 +41,4 @@ Thumbs.db
 # Folders to ignore
 /js/coverage/
 /node_modules/
+/dist/
