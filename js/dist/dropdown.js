@@ -47,7 +47,7 @@
       return `${obj}`;
     }
 
-    return {}.toString.call(obj).match(/\s([a-z]+)/i)[1].toLowerCase();
+    return Object.prototype.toString.call(obj).match(/\s([a-z]+)/i)[1].toLowerCase();
   };
 
   const getSelector = element => {
@@ -92,8 +92,8 @@
   };
 
   const getElement = obj => {
+    // it's a jQuery object or a node element
     if (isElement(obj)) {
-      // it's a jQuery object or a node element
       return obj.jquery ? obj[0] : obj;
     }
 
@@ -105,7 +105,7 @@
   };
 
   const typeCheckConfig = (componentName, config, configTypes) => {
-    Object.keys(configTypes).forEach(property => {
+    for (const property of Object.keys(configTypes)) {
       const expectedTypes = configTypes[property];
       const value = config[property];
       const valueType = value && isElement(value) ? 'element' : toType(value);
@@ -113,7 +113,7 @@
       if (!new RegExp(expectedTypes).test(valueType)) {
         throw new TypeError(`${componentName.toUpperCase()}: Option "${property}" provided type "${valueType}" but expected type "${expectedTypes}".`);
       }
-    });
+    }
   };
 
   const isVisible = element => {
@@ -161,7 +161,9 @@
       // add listener on the first call when the document is in loading state
       if (!DOMContentLoadedCallbacks.length) {
         document.addEventListener('DOMContentLoaded', () => {
-          DOMContentLoadedCallbacks.forEach(callback => callback());
+          for (const callback of DOMContentLoadedCallbacks) {
+            callback();
+          }
         });
       }
 
@@ -226,9 +228,7 @@
    * --------------------------------------------------------------------------
    */
   /**
-   * ------------------------------------------------------------------------
    * Constants
-   * ------------------------------------------------------------------------
    */
 
   const NAME = 'dropdown';
@@ -282,9 +282,7 @@
     autoClose: '(boolean|string)'
   };
   /**
-   * ------------------------------------------------------------------------
-   * Class Definition
-   * ------------------------------------------------------------------------
+   * Class definition
    */
 
   class Dropdown extends BaseComponent__default.default {
@@ -341,7 +339,9 @@
 
 
       if ('ontouchstart' in document.documentElement && !parent.closest(SELECTOR_NAVBAR_NAV)) {
-        [].concat(...document.body.children).forEach(elem => EventHandler__default.default.on(elem, 'mouseover', noop));
+        for (const elem of [].concat(...document.body.children)) {
+          EventHandler__default.default.on(elem, 'mouseover', noop);
+        }
       }
 
       this._element.focus();
@@ -394,7 +394,9 @@
 
 
       if ('ontouchstart' in document.documentElement) {
-        [].concat(...document.body.children).forEach(elem => EventHandler__default.default.off(elem, 'mouseover', noop));
+        for (const elem of [].concat(...document.body.children)) {
+          EventHandler__default.default.off(elem, 'mouseover', noop);
+        }
       }
 
       if (this._popper) {
@@ -532,7 +534,7 @@
       key,
       target
     }) {
-      const items = SelectorEngine__default.default.find(SELECTOR_VISIBLE_ITEMS, this._menu).filter(isVisible);
+      const items = SelectorEngine__default.default.find(SELECTOR_VISIBLE_ITEMS, this._menu).filter(el => isVisible(el));
 
       if (!items.length) {
         return;
@@ -567,8 +569,8 @@
 
       const toggles = SelectorEngine__default.default.find(SELECTOR_DATA_TOGGLE);
 
-      for (let i = 0, len = toggles.length; i < len; i++) {
-        const context = Dropdown.getInstance(toggles[i]);
+      for (const toggle of toggles) {
+        const context = Dropdown.getInstance(toggle);
 
         if (!context || context._config.autoClose === false) {
           continue;
@@ -658,9 +660,7 @@
 
   }
   /**
-   * ------------------------------------------------------------------------
-   * Data Api implementation
-   * ------------------------------------------------------------------------
+   * Data API implementation
    */
 
 
@@ -673,10 +673,7 @@
     Dropdown.getOrCreateInstance(this).toggle();
   });
   /**
-   * ------------------------------------------------------------------------
    * jQuery
-   * ------------------------------------------------------------------------
-   * add .Dropdown to jQuery only if jQuery is present
    */
 
   defineJQueryPlugin(Dropdown);

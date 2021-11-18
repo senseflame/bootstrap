@@ -4,14 +4,13 @@
   * Licensed under MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE)
   */
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('./dom/data.js'), require('./dom/event-handler.js'), require('./dom/manipulator.js'), require('./dom/selector-engine.js'), require('./base-component.js')) :
-  typeof define === 'function' && define.amd ? define(['./dom/data', './dom/event-handler', './dom/manipulator', './dom/selector-engine', './base-component'], factory) :
-  (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.Collapse = factory(global.Data, global.EventHandler, global.Manipulator, global.SelectorEngine, global.Base));
-})(this, (function (Data, EventHandler, Manipulator, SelectorEngine, BaseComponent) { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('./dom/event-handler.js'), require('./dom/manipulator.js'), require('./dom/selector-engine.js'), require('./base-component.js')) :
+  typeof define === 'function' && define.amd ? define(['./dom/event-handler', './dom/manipulator', './dom/selector-engine', './base-component'], factory) :
+  (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.Collapse = factory(global.EventHandler, global.Manipulator, global.SelectorEngine, global.Base));
+})(this, (function (EventHandler, Manipulator, SelectorEngine, BaseComponent) { 'use strict';
 
   const _interopDefaultLegacy = e => e && typeof e === 'object' && 'default' in e ? e : { default: e };
 
-  const Data__default = /*#__PURE__*/_interopDefaultLegacy(Data);
   const EventHandler__default = /*#__PURE__*/_interopDefaultLegacy(EventHandler);
   const Manipulator__default = /*#__PURE__*/_interopDefaultLegacy(Manipulator);
   const SelectorEngine__default = /*#__PURE__*/_interopDefaultLegacy(SelectorEngine);
@@ -29,7 +28,7 @@
       return `${obj}`;
     }
 
-    return {}.toString.call(obj).match(/\s([a-z]+)/i)[1].toLowerCase();
+    return Object.prototype.toString.call(obj).match(/\s([a-z]+)/i)[1].toLowerCase();
   };
 
   const getSelector = element => {
@@ -84,8 +83,8 @@
   };
 
   const getElement = obj => {
+    // it's a jQuery object or a node element
     if (isElement(obj)) {
-      // it's a jQuery object or a node element
       return obj.jquery ? obj[0] : obj;
     }
 
@@ -97,7 +96,7 @@
   };
 
   const typeCheckConfig = (componentName, config, configTypes) => {
-    Object.keys(configTypes).forEach(property => {
+    for (const property of Object.keys(configTypes)) {
       const expectedTypes = configTypes[property];
       const value = config[property];
       const valueType = value && isElement(value) ? 'element' : toType(value);
@@ -105,7 +104,7 @@
       if (!new RegExp(expectedTypes).test(valueType)) {
         throw new TypeError(`${componentName.toUpperCase()}: Option "${property}" provided type "${valueType}" but expected type "${expectedTypes}".`);
       }
-    });
+    }
   };
   /**
    * Trick to restart an element's animation
@@ -118,8 +117,7 @@
 
 
   const reflow = element => {
-    // eslint-disable-next-line no-unused-expressions
-    element.offsetHeight;
+    element.offsetHeight; // eslint-disable-line no-unused-expressions
   };
 
   const getjQuery = () => {
@@ -141,7 +139,9 @@
       // add listener on the first call when the document is in loading state
       if (!DOMContentLoadedCallbacks.length) {
         document.addEventListener('DOMContentLoaded', () => {
-          DOMContentLoadedCallbacks.forEach(callback => callback());
+          for (const callback of DOMContentLoadedCallbacks) {
+            callback();
+          }
         });
       }
 
@@ -177,23 +177,13 @@
    * --------------------------------------------------------------------------
    */
   /**
-   * ------------------------------------------------------------------------
    * Constants
-   * ------------------------------------------------------------------------
    */
 
   const NAME = 'collapse';
   const DATA_KEY = 'bs.collapse';
   const EVENT_KEY = `.${DATA_KEY}`;
   const DATA_API_KEY = '.data-api';
-  const Default = {
-    toggle: true,
-    parent: null
-  };
-  const DefaultType = {
-    toggle: 'boolean',
-    parent: '(null|element)'
-  };
   const EVENT_SHOW = `show${EVENT_KEY}`;
   const EVENT_SHOWN = `shown${EVENT_KEY}`;
   const EVENT_HIDE = `hide${EVENT_KEY}`;
@@ -209,10 +199,16 @@
   const HEIGHT = 'height';
   const SELECTOR_ACTIVES = '.collapse.show, .collapse.collapsing';
   const SELECTOR_DATA_TOGGLE = '[data-bs-toggle="collapse"]';
+  const Default = {
+    toggle: true,
+    parent: null
+  };
+  const DefaultType = {
+    toggle: 'boolean',
+    parent: '(null|element)'
+  };
   /**
-   * ------------------------------------------------------------------------
-   * Class Definition
-   * ------------------------------------------------------------------------
+   * Class definition
    */
 
   class Collapse extends BaseComponent__default.default {
@@ -223,14 +219,11 @@
       this._triggerArray = [];
       const toggleList = SelectorEngine__default.default.find(SELECTOR_DATA_TOGGLE);
 
-      for (let i = 0, len = toggleList.length; i < len; i++) {
-        const elem = toggleList[i];
+      for (const elem of toggleList) {
         const selector = getSelectorFromElement(elem);
         const filterElement = SelectorEngine__default.default.find(selector).filter(foundElem => foundElem === this._element);
 
         if (selector !== null && filterElement.length) {
-          this._selector = selector;
-
           this._triggerArray.push(elem);
         }
       }
@@ -269,23 +262,16 @@
         return;
       }
 
-      let actives = [];
-      let activesData;
+      let activeChildren = []; // find active children
 
       if (this._config.parent) {
-        const children = SelectorEngine__default.default.find(CLASS_NAME_DEEPER_CHILDREN, this._config.parent);
-        actives = SelectorEngine__default.default.find(SELECTOR_ACTIVES, this._config.parent).filter(elem => !children.includes(elem)); // remove children if greater depth
+        activeChildren = this._getFirstLevelChildren(SELECTOR_ACTIVES).filter(element => element !== this._element).map(element => Collapse.getOrCreateInstance(element, {
+          toggle: false
+        }));
       }
 
-      const container = SelectorEngine__default.default.findOne(this._selector);
-
-      if (actives.length) {
-        const tempActiveData = actives.find(elem => container !== elem);
-        activesData = tempActiveData ? Collapse.getInstance(tempActiveData) : null;
-
-        if (activesData && activesData._isTransitioning) {
-          return;
-        }
+      if (activeChildren.length && activeChildren[0]._isTransitioning) {
+        return;
       }
 
       const startEvent = EventHandler__default.default.trigger(this._element, EVENT_SHOW);
@@ -294,17 +280,9 @@
         return;
       }
 
-      actives.forEach(elemActive => {
-        if (container !== elemActive) {
-          Collapse.getOrCreateInstance(elemActive, {
-            toggle: false
-          }).hide();
-        }
-
-        if (!activesData) {
-          Data__default.default.set(elemActive, DATA_KEY, null);
-        }
-      });
+      for (const activeInstance of activeChildren) {
+        activeInstance.hide();
+      }
 
       const dimension = this._getDimension();
 
@@ -357,10 +335,7 @@
 
       this._element.classList.remove(CLASS_NAME_COLLAPSE, CLASS_NAME_SHOW);
 
-      const triggerArrayLength = this._triggerArray.length;
-
-      for (let i = 0; i < triggerArrayLength; i++) {
-        const trigger = this._triggerArray[i];
+      for (const trigger of this._triggerArray) {
         const elem = getElementFromSelector(trigger);
 
         if (elem && !this._isShown(elem)) {
@@ -411,14 +386,21 @@
         return;
       }
 
-      const children = SelectorEngine__default.default.find(CLASS_NAME_DEEPER_CHILDREN, this._config.parent);
-      SelectorEngine__default.default.find(SELECTOR_DATA_TOGGLE, this._config.parent).filter(elem => !children.includes(elem)).forEach(element => {
+      const children = this._getFirstLevelChildren(SELECTOR_DATA_TOGGLE);
+
+      for (const element of children) {
         const selected = getElementFromSelector(element);
 
         if (selected) {
           this._addAriaAndCollapsedClass([element], this._isShown(selected));
         }
-      });
+      }
+    }
+
+    _getFirstLevelChildren(selector) {
+      const children = SelectorEngine__default.default.find(CLASS_NAME_DEEPER_CHILDREN, this._config.parent); // remove children if greater depth
+
+      return SelectorEngine__default.default.find(selector, this._config.parent).filter(elem => !children.includes(elem));
     }
 
     _addAriaAndCollapsedClass(triggerArray, isOpen) {
@@ -426,7 +408,7 @@
         return;
       }
 
-      triggerArray.forEach(elem => {
+      for (const elem of triggerArray) {
         if (isOpen) {
           elem.classList.remove(CLASS_NAME_COLLAPSED);
         } else {
@@ -434,7 +416,7 @@
         }
 
         elem.setAttribute('aria-expanded', isOpen);
-      });
+      }
     } // Static
 
 
@@ -460,9 +442,7 @@
 
   }
   /**
-   * ------------------------------------------------------------------------
-   * Data Api implementation
-   * ------------------------------------------------------------------------
+   * Data API implementation
    */
 
 
@@ -474,17 +454,15 @@
 
     const selector = getSelectorFromElement(this);
     const selectorElements = SelectorEngine__default.default.find(selector);
-    selectorElements.forEach(element => {
+
+    for (const element of selectorElements) {
       Collapse.getOrCreateInstance(element, {
         toggle: false
       }).toggle();
-    });
+    }
   });
   /**
-   * ------------------------------------------------------------------------
    * jQuery
-   * ------------------------------------------------------------------------
-   * add .Collapse to jQuery only if jQuery is present
    */
 
   defineJQueryPlugin(Collapse);

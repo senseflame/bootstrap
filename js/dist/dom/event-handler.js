@@ -35,9 +35,7 @@
    * --------------------------------------------------------------------------
    */
   /**
-   * ------------------------------------------------------------------------
    * Constants
-   * ------------------------------------------------------------------------
    */
 
   const namespaceRegex = /[^.]*(?=\..*)\.|.*/;
@@ -53,9 +51,7 @@
   const customEventsRegex = /^(mouseenter|mouseleave)/i;
   const nativeEvents = new Set(['click', 'dblclick', 'mouseup', 'mousedown', 'contextmenu', 'mousewheel', 'DOMMouseScroll', 'mouseover', 'mouseout', 'mousemove', 'selectstart', 'selectend', 'keydown', 'keypress', 'keyup', 'orientationchange', 'touchstart', 'touchmove', 'touchend', 'touchcancel', 'pointerdown', 'pointermove', 'pointerup', 'pointerleave', 'pointercancel', 'gesturestart', 'gesturechange', 'gestureend', 'focus', 'blur', 'change', 'reset', 'select', 'submit', 'focusin', 'focusout', 'load', 'unload', 'beforeunload', 'resize', 'move', 'DOMContentLoaded', 'readystatechange', 'error', 'abort', 'scroll']);
   /**
-   * ------------------------------------------------------------------------
    * Private methods
-   * ------------------------------------------------------------------------
    */
 
   function getUidEvent(element, uid) {
@@ -109,8 +105,8 @@
   function findHandler(events, handler, delegationSelector = null) {
     const uidEventList = Object.keys(events);
 
-    for (let i = 0, len = uidEventList.length; i < len; i++) {
-      const event = events[uidEventList[i]];
+    for (const uidEvent of uidEventList) {
+      const event = events[uidEvent];
 
       if (event.originalHandler === handler && event.delegationSelector === delegationSelector) {
         return event;
@@ -194,12 +190,13 @@
 
   function removeNamespacedHandlers(element, events, typeEvent, namespace) {
     const storeElementEvent = events[typeEvent] || {};
-    Object.keys(storeElementEvent).forEach(handlerKey => {
+
+    for (const handlerKey of Object.keys(storeElementEvent)) {
       if (handlerKey.includes(namespace)) {
         const event = storeElementEvent[handlerKey];
         removeHandler(element, events, typeEvent, event.originalHandler, event.delegationSelector);
       }
-    });
+    }
   }
 
   function getTypeEvent(event) {
@@ -238,20 +235,21 @@
       }
 
       if (isNamespace) {
-        Object.keys(events).forEach(elementEvent => {
+        for (const elementEvent of Object.keys(events)) {
           removeNamespacedHandlers(element, events, elementEvent, originalTypeEvent.slice(1));
-        });
+        }
       }
 
       const storeElementEvent = events[typeEvent] || {};
-      Object.keys(storeElementEvent).forEach(keyHandlers => {
+
+      for (const keyHandlers of Object.keys(storeElementEvent)) {
         const handlerKey = keyHandlers.replace(stripUidRegex, '');
 
         if (!inNamespace || originalTypeEvent.includes(handlerKey)) {
           const event = storeElementEvent[keyHandlers];
           removeHandler(element, events, typeEvent, event.originalHandler, event.delegationSelector);
         }
-      });
+      }
     },
 
     trigger(element, event, args) {
@@ -289,14 +287,14 @@
 
 
       if (typeof args !== 'undefined') {
-        Object.keys(args).forEach(key => {
+        for (const key of Object.keys(args)) {
           Object.defineProperty(evt, key, {
             get() {
               return args[key];
             }
 
           });
-        });
+        }
       }
 
       if (defaultPrevented) {

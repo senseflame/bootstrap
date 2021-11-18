@@ -63,8 +63,8 @@
   };
 
   const getElement = obj => {
+    // it's a jQuery object or a node element
     if (isElement(obj)) {
-      // it's a jQuery object or a node element
       return obj.jquery ? obj[0] : obj;
     }
 
@@ -118,12 +118,13 @@
    * --------------------------------------------------------------------------
    */
   /**
-   * ------------------------------------------------------------------------
    * Constants
-   * ------------------------------------------------------------------------
    */
 
   const VERSION = '5.1.3';
+  /**
+   * Class definition
+   */
 
   class BaseComponent {
     constructor(element) {
@@ -135,20 +136,21 @@
 
       this._element = element;
       Data__default.default.set(this._element, this.constructor.DATA_KEY, this);
-    }
+    } // Public
+
 
     dispose() {
       Data__default.default.remove(this._element, this.constructor.DATA_KEY);
       EventHandler__default.default.off(this._element, this.constructor.EVENT_KEY);
-      Object.getOwnPropertyNames(this).forEach(propertyName => {
+
+      for (const propertyName of Object.getOwnPropertyNames(this)) {
         this[propertyName] = null;
-      });
+      }
     }
 
     _queueCallback(callback, element, isAnimated = true) {
       executeAfterTransition(callback, element, isAnimated);
-    }
-    /** Static */
+    } // Static
 
 
     static getInstance(element) {
@@ -164,7 +166,7 @@
     }
 
     static get NAME() {
-      throw new Error('You have to implement the static method "NAME", for each component!');
+      throw new Error('You have to implement the static method "NAME" for each component!');
     }
 
     static get DATA_KEY() {

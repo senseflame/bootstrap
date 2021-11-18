@@ -30,7 +30,7 @@
       return `${obj}`;
     }
 
-    return {}.toString.call(obj).match(/\s([a-z]+)/i)[1].toLowerCase();
+    return Object.prototype.toString.call(obj).match(/\s([a-z]+)/i)[1].toLowerCase();
   };
 
   const getSelector = element => {
@@ -102,8 +102,8 @@
   };
 
   const getElement = obj => {
+    // it's a jQuery object or a node element
     if (isElement(obj)) {
-      // it's a jQuery object or a node element
       return obj.jquery ? obj[0] : obj;
     }
 
@@ -115,7 +115,7 @@
   };
 
   const typeCheckConfig = (componentName, config, configTypes) => {
-    Object.keys(configTypes).forEach(property => {
+    for (const property of Object.keys(configTypes)) {
       const expectedTypes = configTypes[property];
       const value = config[property];
       const valueType = value && isElement(value) ? 'element' : toType(value);
@@ -123,7 +123,7 @@
       if (!new RegExp(expectedTypes).test(valueType)) {
         throw new TypeError(`${componentName.toUpperCase()}: Option "${property}" provided type "${valueType}" but expected type "${expectedTypes}".`);
       }
-    });
+    }
   };
 
   const isVisible = element => {
@@ -160,8 +160,7 @@
 
 
   const reflow = element => {
-    // eslint-disable-next-line no-unused-expressions
-    element.offsetHeight;
+    element.offsetHeight; // eslint-disable-line no-unused-expressions
   };
 
   const getjQuery = () => {
@@ -183,7 +182,9 @@
       // add listener on the first call when the document is in loading state
       if (!DOMContentLoadedCallbacks.length) {
         document.addEventListener('DOMContentLoaded', () => {
-          DOMContentLoadedCallbacks.forEach(callback => callback());
+          for (const callback of DOMContentLoadedCallbacks) {
+            callback();
+          }
         });
       }
 
@@ -256,13 +257,21 @@
    * Licensed under MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE)
    * --------------------------------------------------------------------------
    */
+  /**
+   * Constants
+   */
+
   const SELECTOR_FIXED_CONTENT = '.fixed-top, .fixed-bottom, .is-fixed, .sticky-top';
   const SELECTOR_STICKY_CONTENT = '.sticky-top';
+  /**
+   * Class definition
+   */
 
   class ScrollBarHelper {
     constructor() {
       this._element = document.body;
-    }
+    } // Public
+
 
     getWidth() {
       // https://developer.mozilla.org/en-US/docs/Web/API/Window/innerWidth#usage_notes
@@ -283,6 +292,21 @@
 
       this._setElementAttributes(SELECTOR_STICKY_CONTENT, 'marginRight', calculatedValue => calculatedValue - width);
     }
+
+    reset() {
+      this._resetElementAttributes(this._element, 'overflow');
+
+      this._resetElementAttributes(this._element, 'paddingRight');
+
+      this._resetElementAttributes(SELECTOR_FIXED_CONTENT, 'paddingRight');
+
+      this._resetElementAttributes(SELECTOR_STICKY_CONTENT, 'marginRight');
+    }
+
+    isOverflowing() {
+      return this.getWidth() > 0;
+    } // Private
+
 
     _disableOverFlow() {
       this._saveInitialAttribute(this._element, 'overflow');
@@ -305,16 +329,6 @@
       };
 
       this._applyManipulationCallback(selector, manipulationCallBack);
-    }
-
-    reset() {
-      this._resetElementAttributes(this._element, 'overflow');
-
-      this._resetElementAttributes(this._element, 'paddingRight');
-
-      this._resetElementAttributes(SELECTOR_FIXED_CONTENT, 'paddingRight');
-
-      this._resetElementAttributes(SELECTOR_STICKY_CONTENT, 'marginRight');
     }
 
     _saveInitialAttribute(element, styleProp) {
@@ -344,12 +358,10 @@
       if (isElement(selector)) {
         callBack(selector);
       } else {
-        SelectorEngine__default.default.find(selector, this._element).forEach(callBack);
+        for (const sel of SelectorEngine__default.default.find(selector, this._element)) {
+          callBack(sel);
+        }
       }
-    }
-
-    isOverflowing() {
-      return this.getWidth() > 0;
     }
 
   }
@@ -360,6 +372,14 @@
    * Licensed under MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE)
    * --------------------------------------------------------------------------
    */
+  /**
+   * Constants
+   */
+
+  const NAME$2 = 'backdrop';
+  const CLASS_NAME_FADE$1 = 'fade';
+  const CLASS_NAME_SHOW$1 = 'show';
+  const EVENT_MOUSEDOWN = `mousedown.bs.${NAME$2}`;
   const Default$2 = {
     className: 'modal-backdrop',
     isVisible: true,
@@ -376,17 +396,17 @@
     rootElement: '(element|string)',
     clickCallback: '(function|null)'
   };
-  const NAME$2 = 'backdrop';
-  const CLASS_NAME_FADE$1 = 'fade';
-  const CLASS_NAME_SHOW$1 = 'show';
-  const EVENT_MOUSEDOWN = `mousedown.bs.${NAME$2}`;
+  /**
+   * Class definition
+   */
 
   class Backdrop {
     constructor(config) {
       this._config = this._getConfig(config);
       this._isAppended = false;
       this._element = null;
-    }
+    } // Public
+
 
     show(callback) {
       if (!this._config.isVisible) {
@@ -419,6 +439,18 @@
         this.dispose();
         execute(callback);
       });
+    }
+
+    dispose() {
+      if (!this._isAppended) {
+        return;
+      }
+
+      EventHandler__default.default.off(this._element, EVENT_MOUSEDOWN);
+
+      this._element.remove();
+
+      this._isAppended = false;
     } // Private
 
 
@@ -460,18 +492,6 @@
       this._isAppended = true;
     }
 
-    dispose() {
-      if (!this._isAppended) {
-        return;
-      }
-
-      EventHandler__default.default.off(this._element, EVENT_MOUSEDOWN);
-
-      this._element.remove();
-
-      this._isAppended = false;
-    }
-
     _emulateAnimation(callback) {
       executeAfterTransition(callback, this._getElement(), this._config.isAnimated);
     }
@@ -484,6 +504,18 @@
    * Licensed under MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE)
    * --------------------------------------------------------------------------
    */
+  /**
+   * Constants
+   */
+
+  const NAME$1 = 'focustrap';
+  const DATA_KEY$1 = 'bs.focustrap';
+  const EVENT_KEY$1 = `.${DATA_KEY$1}`;
+  const EVENT_FOCUSIN = `focusin${EVENT_KEY$1}`;
+  const EVENT_KEYDOWN_TAB = `keydown.tab${EVENT_KEY$1}`;
+  const TAB_KEY = 'Tab';
+  const TAB_NAV_FORWARD = 'forward';
+  const TAB_NAV_BACKWARD = 'backward';
   const Default$1 = {
     trapElement: null,
     // The element to trap focus inside of
@@ -493,21 +525,17 @@
     trapElement: 'element',
     autofocus: 'boolean'
   };
-  const NAME$1 = 'focustrap';
-  const DATA_KEY$1 = 'bs.focustrap';
-  const EVENT_KEY$1 = `.${DATA_KEY$1}`;
-  const EVENT_FOCUSIN = `focusin${EVENT_KEY$1}`;
-  const EVENT_KEYDOWN_TAB = `keydown.tab${EVENT_KEY$1}`;
-  const TAB_KEY = 'Tab';
-  const TAB_NAV_FORWARD = 'forward';
-  const TAB_NAV_BACKWARD = 'backward';
+  /**
+   * Class definition
+   */
 
   class FocusTrap {
     constructor(config) {
       this._config = this._getConfig(config);
       this._isActive = false;
       this._lastTabNavDirection = null;
-    }
+    } // Public
+
 
     activate() {
       const {
@@ -614,9 +642,7 @@
    * --------------------------------------------------------------------------
    */
   /**
-   * ------------------------------------------------------------------------
    * Constants
-   * ------------------------------------------------------------------------
    */
 
   const NAME = 'modal';
@@ -624,16 +650,6 @@
   const EVENT_KEY = `.${DATA_KEY}`;
   const DATA_API_KEY = '.data-api';
   const ESCAPE_KEY = 'Escape';
-  const Default = {
-    backdrop: true,
-    keyboard: true,
-    focus: true
-  };
-  const DefaultType = {
-    backdrop: '(boolean|string)',
-    keyboard: 'boolean',
-    focus: 'boolean'
-  };
   const EVENT_HIDE = `hide${EVENT_KEY}`;
   const EVENT_HIDE_PREVENTED = `hidePrevented${EVENT_KEY}`;
   const EVENT_HIDDEN = `hidden${EVENT_KEY}`;
@@ -653,10 +669,18 @@
   const SELECTOR_DIALOG = '.modal-dialog';
   const SELECTOR_MODAL_BODY = '.modal-body';
   const SELECTOR_DATA_TOGGLE = '[data-bs-toggle="modal"]';
+  const Default = {
+    backdrop: true,
+    keyboard: true,
+    focus: true
+  };
+  const DefaultType = {
+    backdrop: '(boolean|string)',
+    keyboard: 'boolean',
+    focus: 'boolean'
+  };
   /**
-   * ------------------------------------------------------------------------
-   * Class Definition
-   * ------------------------------------------------------------------------
+   * Class definition
    */
 
   class Modal extends BaseComponent__default.default {
@@ -760,7 +784,9 @@
     }
 
     dispose() {
-      [window, this._dialog].forEach(htmlElement => EventHandler__default.default.off(htmlElement, EVENT_KEY));
+      for (const htmlElement of [window, this._dialog]) {
+        EventHandler__default.default.off(htmlElement, EVENT_KEY);
+      }
 
       this._backdrop.dispose();
 
@@ -946,9 +972,10 @@
       }, this._dialog);
 
       this._element.focus();
-    } // ----------------------------------------------------------------------
-    // the following methods are used to handle overflowing modals
-    // ----------------------------------------------------------------------
+    }
+    /**
+     * The following methods are used to handle overflowing modals
+     */
 
 
     _adjustDialog() {
@@ -991,9 +1018,7 @@
 
   }
   /**
-   * ------------------------------------------------------------------------
-   * Data Api implementation
-   * ------------------------------------------------------------------------
+   * Data API implementation
    */
 
 
@@ -1028,10 +1053,7 @@
   });
   enableDismissTrigger(Modal);
   /**
-   * ------------------------------------------------------------------------
    * jQuery
-   * ------------------------------------------------------------------------
-   * add .Modal to jQuery only if jQuery is present
    */
 
   defineJQueryPlugin(Modal);

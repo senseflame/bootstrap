@@ -77,8 +77,7 @@
 
 
   const reflow = element => {
-    // eslint-disable-next-line no-unused-expressions
-    element.offsetHeight;
+    element.offsetHeight; // eslint-disable-line no-unused-expressions
   };
 
   const getjQuery = () => {
@@ -100,7 +99,9 @@
       // add listener on the first call when the document is in loading state
       if (!DOMContentLoadedCallbacks.length) {
         document.addEventListener('DOMContentLoaded', () => {
-          DOMContentLoadedCallbacks.forEach(callback => callback());
+          for (const callback of DOMContentLoadedCallbacks) {
+            callback();
+          }
         });
       }
 
@@ -136,9 +137,7 @@
    * --------------------------------------------------------------------------
    */
   /**
-   * ------------------------------------------------------------------------
    * Constants
-   * ------------------------------------------------------------------------
    */
 
   const NAME = 'tab';
@@ -162,9 +161,7 @@
   const SELECTOR_DROPDOWN_TOGGLE = '.dropdown-toggle';
   const SELECTOR_DROPDOWN_ACTIVE_CHILD = ':scope > .dropdown-menu .active';
   /**
-   * ------------------------------------------------------------------------
-   * Class Definition
-   * ------------------------------------------------------------------------
+   * Class definition
    */
 
   class Tab extends BaseComponent__default.default {
@@ -272,7 +269,9 @@
         const dropdownElement = element.closest(SELECTOR_DROPDOWN);
 
         if (dropdownElement) {
-          SelectorEngine__default.default.find(SELECTOR_DROPDOWN_TOGGLE, dropdownElement).forEach(dropdown => dropdown.classList.add(CLASS_NAME_ACTIVE));
+          for (const dropdown of SelectorEngine__default.default.find(SELECTOR_DROPDOWN_TOGGLE, dropdownElement)) {
+            dropdown.classList.add(CLASS_NAME_ACTIVE);
+          }
         }
 
         element.setAttribute('aria-expanded', true);
@@ -300,9 +299,7 @@
 
   }
   /**
-   * ------------------------------------------------------------------------
-   * Data Api implementation
-   * ------------------------------------------------------------------------
+   * Data API implementation
    */
 
 
@@ -319,10 +316,7 @@
     data.show();
   });
   /**
-   * ------------------------------------------------------------------------
    * jQuery
-   * ------------------------------------------------------------------------
-   * add .Tab to jQuery only if jQuery is present
    */
 
   defineJQueryPlugin(Tab);

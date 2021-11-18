@@ -44,12 +44,10 @@
       return `${obj}`;
     }
 
-    return {}.toString.call(obj).match(/\s([a-z]+)/i)[1].toLowerCase();
+    return Object.prototype.toString.call(obj).match(/\s([a-z]+)/i)[1].toLowerCase();
   };
   /**
-   * --------------------------------------------------------------------------
-   * Public Util Api
-   * --------------------------------------------------------------------------
+   * Public Util API
    */
 
 
@@ -140,8 +138,8 @@
   };
 
   const getElement = obj => {
+    // it's a jQuery object or a node element
     if (isElement(obj)) {
-      // it's a jQuery object or a node element
       return obj.jquery ? obj[0] : obj;
     }
 
@@ -153,7 +151,7 @@
   };
 
   const typeCheckConfig = (componentName, config, configTypes) => {
-    Object.keys(configTypes).forEach(property => {
+    for (const property of Object.keys(configTypes)) {
       const expectedTypes = configTypes[property];
       const value = config[property];
       const valueType = value && isElement(value) ? 'element' : toType(value);
@@ -161,7 +159,7 @@
       if (!new RegExp(expectedTypes).test(valueType)) {
         throw new TypeError(`${componentName.toUpperCase()}: Option "${property}" provided type "${valueType}" but expected type "${expectedTypes}".`);
       }
-    });
+    }
   };
 
   const isVisible = element => {
@@ -223,8 +221,7 @@
 
 
   const reflow = element => {
-    // eslint-disable-next-line no-unused-expressions
-    element.offsetHeight;
+    element.offsetHeight; // eslint-disable-line no-unused-expressions
   };
 
   const getjQuery = () => {
@@ -246,7 +243,9 @@
       // add listener on the first call when the document is in loading state
       if (!DOMContentLoadedCallbacks.length) {
         document.addEventListener('DOMContentLoaded', () => {
-          DOMContentLoadedCallbacks.forEach(callback => callback());
+          for (const callback of DOMContentLoadedCallbacks) {
+            callback();
+          }
         });
       }
 
@@ -347,9 +346,7 @@
    * --------------------------------------------------------------------------
    */
   /**
-   * ------------------------------------------------------------------------
    * Constants
-   * ------------------------------------------------------------------------
    */
 
   const namespaceRegex = /[^.]*(?=\..*)\.|.*/;
@@ -365,9 +362,7 @@
   const customEventsRegex = /^(mouseenter|mouseleave)/i;
   const nativeEvents = new Set(['click', 'dblclick', 'mouseup', 'mousedown', 'contextmenu', 'mousewheel', 'DOMMouseScroll', 'mouseover', 'mouseout', 'mousemove', 'selectstart', 'selectend', 'keydown', 'keypress', 'keyup', 'orientationchange', 'touchstart', 'touchmove', 'touchend', 'touchcancel', 'pointerdown', 'pointermove', 'pointerup', 'pointerleave', 'pointercancel', 'gesturestart', 'gesturechange', 'gestureend', 'focus', 'blur', 'change', 'reset', 'select', 'submit', 'focusin', 'focusout', 'load', 'unload', 'beforeunload', 'resize', 'move', 'DOMContentLoaded', 'readystatechange', 'error', 'abort', 'scroll']);
   /**
-   * ------------------------------------------------------------------------
    * Private methods
-   * ------------------------------------------------------------------------
    */
 
   function getUidEvent(element, uid) {
@@ -421,8 +416,8 @@
   function findHandler(events, handler, delegationSelector = null) {
     const uidEventList = Object.keys(events);
 
-    for (let i = 0, len = uidEventList.length; i < len; i++) {
-      const event = events[uidEventList[i]];
+    for (const uidEvent of uidEventList) {
+      const event = events[uidEvent];
 
       if (event.originalHandler === handler && event.delegationSelector === delegationSelector) {
         return event;
@@ -506,12 +501,13 @@
 
   function removeNamespacedHandlers(element, events, typeEvent, namespace) {
     const storeElementEvent = events[typeEvent] || {};
-    Object.keys(storeElementEvent).forEach(handlerKey => {
+
+    for (const handlerKey of Object.keys(storeElementEvent)) {
       if (handlerKey.includes(namespace)) {
         const event = storeElementEvent[handlerKey];
         removeHandler(element, events, typeEvent, event.originalHandler, event.delegationSelector);
       }
-    });
+    }
   }
 
   function getTypeEvent(event) {
@@ -550,20 +546,21 @@
       }
 
       if (isNamespace) {
-        Object.keys(events).forEach(elementEvent => {
+        for (const elementEvent of Object.keys(events)) {
           removeNamespacedHandlers(element, events, elementEvent, originalTypeEvent.slice(1));
-        });
+        }
       }
 
       const storeElementEvent = events[typeEvent] || {};
-      Object.keys(storeElementEvent).forEach(keyHandlers => {
+
+      for (const keyHandlers of Object.keys(storeElementEvent)) {
         const handlerKey = keyHandlers.replace(stripUidRegex, '');
 
         if (!inNamespace || originalTypeEvent.includes(handlerKey)) {
           const event = storeElementEvent[keyHandlers];
           removeHandler(element, events, typeEvent, event.originalHandler, event.delegationSelector);
         }
-      });
+      }
     },
 
     trigger(element, event, args) {
@@ -601,14 +598,14 @@
 
 
       if (typeof args !== 'undefined') {
-        Object.keys(args).forEach(key => {
+        for (const key of Object.keys(args)) {
           Object.defineProperty(evt, key, {
             get() {
               return args[key];
             }
 
           });
-        });
+        }
       }
 
       if (defaultPrevented) {
@@ -636,9 +633,7 @@
    */
 
   /**
-   * ------------------------------------------------------------------------
    * Constants
-   * ------------------------------------------------------------------------
    */
   const elementMap = new Map();
   const Data = {
@@ -689,12 +684,13 @@
    * --------------------------------------------------------------------------
    */
   /**
-   * ------------------------------------------------------------------------
    * Constants
-   * ------------------------------------------------------------------------
    */
 
   const VERSION = '5.1.3';
+  /**
+   * Class definition
+   */
 
   class BaseComponent {
     constructor(element) {
@@ -706,20 +702,21 @@
 
       this._element = element;
       Data.set(this._element, this.constructor.DATA_KEY, this);
-    }
+    } // Public
+
 
     dispose() {
       Data.remove(this._element, this.constructor.DATA_KEY);
       EventHandler.off(this._element, this.constructor.EVENT_KEY);
-      Object.getOwnPropertyNames(this).forEach(propertyName => {
+
+      for (const propertyName of Object.getOwnPropertyNames(this)) {
         this[propertyName] = null;
-      });
+      }
     }
 
     _queueCallback(callback, element, isAnimated = true) {
       executeAfterTransition(callback, element, isAnimated);
-    }
-    /** Static */
+    } // Static
 
 
     static getInstance(element) {
@@ -735,7 +732,7 @@
     }
 
     static get NAME() {
-      throw new Error('You have to implement the static method "NAME", for each component!');
+      throw new Error('You have to implement the static method "NAME" for each component!');
     }
 
     static get DATA_KEY() {
@@ -781,28 +778,24 @@
    * --------------------------------------------------------------------------
    */
   /**
-   * ------------------------------------------------------------------------
    * Constants
-   * ------------------------------------------------------------------------
    */
 
-  const NAME$d = 'alert';
+  const NAME$e = 'alert';
   const DATA_KEY$c = 'bs.alert';
-  const EVENT_KEY$c = `.${DATA_KEY$c}`;
-  const EVENT_CLOSE = `close${EVENT_KEY$c}`;
-  const EVENT_CLOSED = `closed${EVENT_KEY$c}`;
+  const EVENT_KEY$d = `.${DATA_KEY$c}`;
+  const EVENT_CLOSE = `close${EVENT_KEY$d}`;
+  const EVENT_CLOSED = `closed${EVENT_KEY$d}`;
   const CLASS_NAME_FADE$5 = 'fade';
   const CLASS_NAME_SHOW$8 = 'show';
   /**
-   * ------------------------------------------------------------------------
-   * Class Definition
-   * ------------------------------------------------------------------------
+   * Class definition
    */
 
   class Alert extends BaseComponent {
     // Getters
     static get NAME() {
-      return NAME$d;
+      return NAME$e;
     } // Public
 
 
@@ -847,18 +840,13 @@
 
   }
   /**
-   * ------------------------------------------------------------------------
-   * Data Api implementation
-   * ------------------------------------------------------------------------
+   * Data API implementation
    */
 
 
   enableDismissTrigger(Alert, 'close');
   /**
-   * ------------------------------------------------------------------------
    * jQuery
-   * ------------------------------------------------------------------------
-   * add .Alert to jQuery only if jQuery is present
    */
 
   defineJQueryPlugin(Alert);
@@ -870,28 +858,24 @@
    * --------------------------------------------------------------------------
    */
   /**
-   * ------------------------------------------------------------------------
    * Constants
-   * ------------------------------------------------------------------------
    */
 
-  const NAME$c = 'button';
+  const NAME$d = 'button';
   const DATA_KEY$b = 'bs.button';
-  const EVENT_KEY$b = `.${DATA_KEY$b}`;
+  const EVENT_KEY$c = `.${DATA_KEY$b}`;
   const DATA_API_KEY$7 = '.data-api';
   const CLASS_NAME_ACTIVE$3 = 'active';
   const SELECTOR_DATA_TOGGLE$5 = '[data-bs-toggle="button"]';
-  const EVENT_CLICK_DATA_API$6 = `click${EVENT_KEY$b}${DATA_API_KEY$7}`;
+  const EVENT_CLICK_DATA_API$6 = `click${EVENT_KEY$c}${DATA_API_KEY$7}`;
   /**
-   * ------------------------------------------------------------------------
-   * Class Definition
-   * ------------------------------------------------------------------------
+   * Class definition
    */
 
   class Button extends BaseComponent {
     // Getters
     static get NAME() {
-      return NAME$c;
+      return NAME$d;
     } // Public
 
 
@@ -913,9 +897,7 @@
 
   }
   /**
-   * ------------------------------------------------------------------------
-   * Data Api implementation
-   * ------------------------------------------------------------------------
+   * Data API implementation
    */
 
 
@@ -926,10 +908,7 @@
     data.toggle();
   });
   /**
-   * ------------------------------------------------------------------------
    * jQuery
-   * ------------------------------------------------------------------------
-   * add .Button to jQuery only if jQuery is present
    */
 
   defineJQueryPlugin(Button);
@@ -979,11 +958,14 @@
       }
 
       const attributes = {};
-      Object.keys(element.dataset).filter(key => key.startsWith('bs')).forEach(key => {
+      const bsKeys = Object.keys(element.dataset).filter(key => key.startsWith('bs'));
+
+      for (const key of bsKeys) {
         let pureKey = key.replace(/^bs/, '');
         pureKey = pureKey.charAt(0).toLowerCase() + pureKey.slice(1, pureKey.length);
         attributes[pureKey] = normalizeData(element.dataset[key]);
-      });
+      }
+
       return attributes;
     },
 
@@ -1014,6 +996,10 @@
    * Licensed under MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE)
    * --------------------------------------------------------------------------
    */
+  /**
+   * Constants
+   */
+
   const NODE_TEXT = 3;
   const SelectorEngine = {
     find(selector, element = document.documentElement) {
@@ -1080,14 +1066,142 @@
 
   /**
    * --------------------------------------------------------------------------
+   * Bootstrap (v5.1.3): util/swipe.js
+   * Licensed under MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE)
+   * --------------------------------------------------------------------------
+   */
+  /**
+   * Constants
+   */
+
+  const NAME$c = 'swipe';
+  const EVENT_KEY$b = '.bs.swipe';
+  const EVENT_TOUCHSTART = `touchstart${EVENT_KEY$b}`;
+  const EVENT_TOUCHMOVE = `touchmove${EVENT_KEY$b}`;
+  const EVENT_TOUCHEND = `touchend${EVENT_KEY$b}`;
+  const EVENT_POINTERDOWN = `pointerdown${EVENT_KEY$b}`;
+  const EVENT_POINTERUP = `pointerup${EVENT_KEY$b}`;
+  const POINTER_TYPE_TOUCH = 'touch';
+  const POINTER_TYPE_PEN = 'pen';
+  const CLASS_NAME_POINTER_EVENT = 'pointer-event';
+  const SWIPE_THRESHOLD = 40;
+  const Default$b = {
+    leftCallback: null,
+    rightCallback: null,
+    endCallback: null
+  };
+  const DefaultType$b = {
+    leftCallback: '(function|null)',
+    rightCallback: '(function|null)',
+    endCallback: '(function|null)'
+  };
+  /**
+   * Class definition
+   */
+
+  class Swipe {
+    constructor(element, config) {
+      this._element = element;
+
+      if (!element || !Swipe.isSupported()) {
+        return;
+      }
+
+      this._config = this._getConfig(config);
+      this._deltaX = 0;
+      this._supportPointerEvents = Boolean(window.PointerEvent);
+
+      this._initEvents();
+    } // Public
+
+
+    dispose() {
+      EventHandler.off(this._element, EVENT_KEY$b);
+    } // Private
+
+
+    _start(event) {
+      if (!this._supportPointerEvents) {
+        this._deltaX = event.touches[0].clientX;
+        return;
+      }
+
+      if (this._eventIsPointerPenTouch(event)) {
+        this._deltaX = event.clientX;
+      }
+    }
+
+    _end(event) {
+      if (this._eventIsPointerPenTouch(event)) {
+        this._deltaX = event.clientX - this._deltaX;
+      }
+
+      this._handleSwipe();
+
+      execute(this._config.endCallback);
+    }
+
+    _move(event) {
+      this._deltaX = event.touches && event.touches.length > 1 ? 0 : event.touches[0].clientX - this._deltaX;
+    }
+
+    _handleSwipe() {
+      const absDeltaX = Math.abs(this._deltaX);
+
+      if (absDeltaX <= SWIPE_THRESHOLD) {
+        return;
+      }
+
+      const direction = absDeltaX / this._deltaX;
+      this._deltaX = 0;
+
+      if (!direction) {
+        return;
+      }
+
+      execute(direction > 0 ? this._config.rightCallback : this._config.leftCallback);
+    }
+
+    _initEvents() {
+      if (this._supportPointerEvents) {
+        EventHandler.on(this._element, EVENT_POINTERDOWN, event => this._start(event));
+        EventHandler.on(this._element, EVENT_POINTERUP, event => this._end(event));
+
+        this._element.classList.add(CLASS_NAME_POINTER_EVENT);
+      } else {
+        EventHandler.on(this._element, EVENT_TOUCHSTART, event => this._start(event));
+        EventHandler.on(this._element, EVENT_TOUCHMOVE, event => this._move(event));
+        EventHandler.on(this._element, EVENT_TOUCHEND, event => this._end(event));
+      }
+    }
+
+    _getConfig(config) {
+      config = { ...Default$b,
+        ...(typeof config === 'object' ? config : {})
+      };
+      typeCheckConfig(NAME$c, config, DefaultType$b);
+      return config;
+    }
+
+    _eventIsPointerPenTouch(event) {
+      return this._supportPointerEvents && (event.pointerType === POINTER_TYPE_PEN || event.pointerType === POINTER_TYPE_TOUCH);
+    } // Static
+
+
+    static isSupported() {
+      return 'ontouchstart' in document.documentElement || navigator.maxTouchPoints > 0;
+    }
+
+  }
+
+  /**
+   * --------------------------------------------------------------------------
    * Bootstrap (v5.1.3): carousel.js
    * Licensed under MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE)
    * --------------------------------------------------------------------------
    */
   /**
-   * ------------------------------------------------------------------------
    * Constants
-   * ------------------------------------------------------------------------
    */
 
   const NAME$b = 'carousel';
@@ -1098,7 +1212,38 @@
   const ARROW_RIGHT_KEY = 'ArrowRight';
   const TOUCHEVENT_COMPAT_WAIT = 500; // Time for mouse compat events to fire after touch
 
-  const SWIPE_THRESHOLD = 40;
+  const ORDER_NEXT = 'next';
+  const ORDER_PREV = 'prev';
+  const DIRECTION_LEFT = 'left';
+  const DIRECTION_RIGHT = 'right';
+  const EVENT_SLIDE = `slide${EVENT_KEY$a}`;
+  const EVENT_SLID = `slid${EVENT_KEY$a}`;
+  const EVENT_KEYDOWN = `keydown${EVENT_KEY$a}`;
+  const EVENT_MOUSEENTER = `mouseenter${EVENT_KEY$a}`;
+  const EVENT_MOUSELEAVE = `mouseleave${EVENT_KEY$a}`;
+  const EVENT_DRAG_START = `dragstart${EVENT_KEY$a}`;
+  const EVENT_LOAD_DATA_API$2 = `load${EVENT_KEY$a}${DATA_API_KEY$6}`;
+  const EVENT_CLICK_DATA_API$5 = `click${EVENT_KEY$a}${DATA_API_KEY$6}`;
+  const CLASS_NAME_CAROUSEL = 'carousel';
+  const CLASS_NAME_ACTIVE$2 = 'active';
+  const CLASS_NAME_SLIDE = 'slide';
+  const CLASS_NAME_END = 'carousel-item-end';
+  const CLASS_NAME_START = 'carousel-item-start';
+  const CLASS_NAME_NEXT = 'carousel-item-next';
+  const CLASS_NAME_PREV = 'carousel-item-prev';
+  const SELECTOR_ACTIVE$1 = '.active';
+  const SELECTOR_ACTIVE_ITEM = '.active.carousel-item';
+  const SELECTOR_ITEM = '.carousel-item';
+  const SELECTOR_ITEM_IMG = '.carousel-item img';
+  const SELECTOR_NEXT_PREV = '.carousel-item-next, .carousel-item-prev';
+  const SELECTOR_INDICATORS = '.carousel-indicators';
+  const SELECTOR_INDICATOR = '[data-bs-target]';
+  const SELECTOR_DATA_SLIDE = '[data-bs-slide], [data-bs-slide-to]';
+  const SELECTOR_DATA_RIDE = '[data-bs-ride="carousel"]';
+  const KEY_TO_DIRECTION = {
+    [ARROW_LEFT_KEY]: DIRECTION_RIGHT,
+    [ARROW_RIGHT_KEY]: DIRECTION_LEFT
+  };
   const Default$a = {
     interval: 5000,
     keyboard: true,
@@ -1115,50 +1260,8 @@
     wrap: 'boolean',
     touch: 'boolean'
   };
-  const ORDER_NEXT = 'next';
-  const ORDER_PREV = 'prev';
-  const DIRECTION_LEFT = 'left';
-  const DIRECTION_RIGHT = 'right';
-  const KEY_TO_DIRECTION = {
-    [ARROW_LEFT_KEY]: DIRECTION_RIGHT,
-    [ARROW_RIGHT_KEY]: DIRECTION_LEFT
-  };
-  const EVENT_SLIDE = `slide${EVENT_KEY$a}`;
-  const EVENT_SLID = `slid${EVENT_KEY$a}`;
-  const EVENT_KEYDOWN = `keydown${EVENT_KEY$a}`;
-  const EVENT_MOUSEENTER = `mouseenter${EVENT_KEY$a}`;
-  const EVENT_MOUSELEAVE = `mouseleave${EVENT_KEY$a}`;
-  const EVENT_TOUCHSTART = `touchstart${EVENT_KEY$a}`;
-  const EVENT_TOUCHMOVE = `touchmove${EVENT_KEY$a}`;
-  const EVENT_TOUCHEND = `touchend${EVENT_KEY$a}`;
-  const EVENT_POINTERDOWN = `pointerdown${EVENT_KEY$a}`;
-  const EVENT_POINTERUP = `pointerup${EVENT_KEY$a}`;
-  const EVENT_DRAG_START = `dragstart${EVENT_KEY$a}`;
-  const EVENT_LOAD_DATA_API$2 = `load${EVENT_KEY$a}${DATA_API_KEY$6}`;
-  const EVENT_CLICK_DATA_API$5 = `click${EVENT_KEY$a}${DATA_API_KEY$6}`;
-  const CLASS_NAME_CAROUSEL = 'carousel';
-  const CLASS_NAME_ACTIVE$2 = 'active';
-  const CLASS_NAME_SLIDE = 'slide';
-  const CLASS_NAME_END = 'carousel-item-end';
-  const CLASS_NAME_START = 'carousel-item-start';
-  const CLASS_NAME_NEXT = 'carousel-item-next';
-  const CLASS_NAME_PREV = 'carousel-item-prev';
-  const CLASS_NAME_POINTER_EVENT = 'pointer-event';
-  const SELECTOR_ACTIVE$1 = '.active';
-  const SELECTOR_ACTIVE_ITEM = '.active.carousel-item';
-  const SELECTOR_ITEM = '.carousel-item';
-  const SELECTOR_ITEM_IMG = '.carousel-item img';
-  const SELECTOR_NEXT_PREV = '.carousel-item-next, .carousel-item-prev';
-  const SELECTOR_INDICATORS = '.carousel-indicators';
-  const SELECTOR_INDICATOR = '[data-bs-target]';
-  const SELECTOR_DATA_SLIDE = '[data-bs-slide], [data-bs-slide-to]';
-  const SELECTOR_DATA_RIDE = '[data-bs-ride="carousel"]';
-  const POINTER_TYPE_TOUCH = 'touch';
-  const POINTER_TYPE_PEN = 'pen';
   /**
-   * ------------------------------------------------------------------------
-   * Class Definition
-   * ------------------------------------------------------------------------
+   * Class definition
    */
 
   class Carousel extends BaseComponent {
@@ -1170,12 +1273,9 @@
       this._isPaused = false;
       this._isSliding = false;
       this.touchTimeout = null;
-      this.touchStartX = 0;
-      this.touchDeltaX = 0;
+      this._swipeHelper = null;
       this._config = this._getConfig(config);
       this._indicatorsElement = SelectorEngine.findOne(SELECTOR_INDICATORS, this._element);
-      this._touchSupported = 'ontouchstart' in document.documentElement || navigator.maxTouchPoints > 0;
-      this._pointerEvent = Boolean(window.PointerEvent);
 
       this._addEventListeners();
     } // Getters
@@ -1260,6 +1360,14 @@
       const order = index > activeIndex ? ORDER_NEXT : ORDER_PREV;
 
       this._slide(order, this._items[index]);
+    }
+
+    dispose() {
+      if (this._swipeHelper) {
+        this._swipeHelper.dispose();
+      }
+
+      super.dispose();
     } // Private
 
 
@@ -1272,23 +1380,6 @@
       return config;
     }
 
-    _handleSwipe() {
-      const absDeltax = Math.abs(this.touchDeltaX);
-
-      if (absDeltax <= SWIPE_THRESHOLD) {
-        return;
-      }
-
-      const direction = absDeltax / this.touchDeltaX;
-      this.touchDeltaX = 0;
-
-      if (!direction) {
-        return;
-      }
-
-      this._slide(direction > 0 ? DIRECTION_RIGHT : DIRECTION_LEFT);
-    }
-
     _addEventListeners() {
       if (this._config.keyboard) {
         EventHandler.on(this._element, EVENT_KEYDOWN, event => this._keydown(event));
@@ -1299,36 +1390,17 @@
         EventHandler.on(this._element, EVENT_MOUSELEAVE, event => this.cycle(event));
       }
 
-      if (this._config.touch && this._touchSupported) {
+      if (this._config.touch && Swipe.isSupported()) {
         this._addTouchEventListeners();
       }
     }
 
     _addTouchEventListeners() {
-      const hasPointerPenTouch = event => {
-        return this._pointerEvent && (event.pointerType === POINTER_TYPE_PEN || event.pointerType === POINTER_TYPE_TOUCH);
-      };
+      for (const itemImg of SelectorEngine.find(SELECTOR_ITEM_IMG, this._element)) {
+        EventHandler.on(itemImg, EVENT_DRAG_START, event => event.preventDefault());
+      }
 
-      const start = event => {
-        if (hasPointerPenTouch(event)) {
-          this.touchStartX = event.clientX;
-        } else if (!this._pointerEvent) {
-          this.touchStartX = event.touches[0].clientX;
-        }
-      };
-
-      const move = event => {
-        // ensure swiping with one touch and not pinching
-        this.touchDeltaX = event.touches && event.touches.length > 1 ? 0 : event.touches[0].clientX - this.touchStartX;
-      };
-
-      const end = event => {
-        if (hasPointerPenTouch(event)) {
-          this.touchDeltaX = event.clientX - this.touchStartX;
-        }
-
-        this._handleSwipe();
-
+      const endCallBack = () => {
         if (this._config.pause === 'hover') {
           // If it's a touch-enabled device, mouseenter/leave are fired as
           // part of the mouse compatibility events on first tap - the carousel
@@ -1347,20 +1419,12 @@
         }
       };
 
-      SelectorEngine.find(SELECTOR_ITEM_IMG, this._element).forEach(itemImg => {
-        EventHandler.on(itemImg, EVENT_DRAG_START, event => event.preventDefault());
-      });
-
-      if (this._pointerEvent) {
-        EventHandler.on(this._element, EVENT_POINTERDOWN, event => start(event));
-        EventHandler.on(this._element, EVENT_POINTERUP, event => end(event));
-
-        this._element.classList.add(CLASS_NAME_POINTER_EVENT);
-      } else {
-        EventHandler.on(this._element, EVENT_TOUCHSTART, event => start(event));
-        EventHandler.on(this._element, EVENT_TOUCHMOVE, event => move(event));
-        EventHandler.on(this._element, EVENT_TOUCHEND, event => end(event));
-      }
+      const swipeConfig = {
+        leftCallback: () => this._slide(DIRECTION_LEFT),
+        rightCallback: () => this._slide(DIRECTION_RIGHT),
+        endCallback: endCallBack
+      };
+      this._swipeHelper = new Swipe(this._element, swipeConfig);
     }
 
     _keydown(event) {
@@ -1407,10 +1471,10 @@
         activeIndicator.removeAttribute('aria-current');
         const indicators = SelectorEngine.find(SELECTOR_INDICATOR, this._indicatorsElement);
 
-        for (let i = 0; i < indicators.length; i++) {
-          if (Number.parseInt(indicators[i].getAttribute('data-bs-slide-to'), 10) === this._getItemIndex(element)) {
-            indicators[i].classList.add(CLASS_NAME_ACTIVE$2);
-            indicators[i].setAttribute('aria-current', 'true');
+        for (const indicator of indicators) {
+          if (Number.parseInt(indicator.getAttribute('data-bs-slide-to'), 10) === this._getItemIndex(element)) {
+            indicator.classList.add(CLASS_NAME_ACTIVE$2);
+            indicator.setAttribute('aria-current', 'true');
             break;
           }
         }
@@ -1604,9 +1668,7 @@
 
   }
   /**
-   * ------------------------------------------------------------------------
-   * Data Api implementation
-   * ------------------------------------------------------------------------
+   * Data API implementation
    */
 
 
@@ -1614,15 +1676,12 @@
   EventHandler.on(window, EVENT_LOAD_DATA_API$2, () => {
     const carousels = SelectorEngine.find(SELECTOR_DATA_RIDE);
 
-    for (let i = 0, len = carousels.length; i < len; i++) {
-      Carousel.carouselInterface(carousels[i], Carousel.getInstance(carousels[i]));
+    for (const carousel of carousels) {
+      Carousel.carouselInterface(carousel, Carousel.getInstance(carousel));
     }
   });
   /**
-   * ------------------------------------------------------------------------
    * jQuery
-   * ------------------------------------------------------------------------
-   * add .Carousel to jQuery only if jQuery is present
    */
 
   defineJQueryPlugin(Carousel);
@@ -1634,23 +1693,13 @@
    * --------------------------------------------------------------------------
    */
   /**
-   * ------------------------------------------------------------------------
    * Constants
-   * ------------------------------------------------------------------------
    */
 
   const NAME$a = 'collapse';
   const DATA_KEY$9 = 'bs.collapse';
   const EVENT_KEY$9 = `.${DATA_KEY$9}`;
   const DATA_API_KEY$5 = '.data-api';
-  const Default$9 = {
-    toggle: true,
-    parent: null
-  };
-  const DefaultType$9 = {
-    toggle: 'boolean',
-    parent: '(null|element)'
-  };
   const EVENT_SHOW$5 = `show${EVENT_KEY$9}`;
   const EVENT_SHOWN$5 = `shown${EVENT_KEY$9}`;
   const EVENT_HIDE$5 = `hide${EVENT_KEY$9}`;
@@ -1666,10 +1715,16 @@
   const HEIGHT = 'height';
   const SELECTOR_ACTIVES = '.collapse.show, .collapse.collapsing';
   const SELECTOR_DATA_TOGGLE$4 = '[data-bs-toggle="collapse"]';
+  const Default$9 = {
+    toggle: true,
+    parent: null
+  };
+  const DefaultType$9 = {
+    toggle: 'boolean',
+    parent: '(null|element)'
+  };
   /**
-   * ------------------------------------------------------------------------
-   * Class Definition
-   * ------------------------------------------------------------------------
+   * Class definition
    */
 
   class Collapse extends BaseComponent {
@@ -1680,14 +1735,11 @@
       this._triggerArray = [];
       const toggleList = SelectorEngine.find(SELECTOR_DATA_TOGGLE$4);
 
-      for (let i = 0, len = toggleList.length; i < len; i++) {
-        const elem = toggleList[i];
+      for (const elem of toggleList) {
         const selector = getSelectorFromElement(elem);
         const filterElement = SelectorEngine.find(selector).filter(foundElem => foundElem === this._element);
 
         if (selector !== null && filterElement.length) {
-          this._selector = selector;
-
           this._triggerArray.push(elem);
         }
       }
@@ -1726,23 +1778,16 @@
         return;
       }
 
-      let actives = [];
-      let activesData;
+      let activeChildren = []; // find active children
 
       if (this._config.parent) {
-        const children = SelectorEngine.find(CLASS_NAME_DEEPER_CHILDREN, this._config.parent);
-        actives = SelectorEngine.find(SELECTOR_ACTIVES, this._config.parent).filter(elem => !children.includes(elem)); // remove children if greater depth
+        activeChildren = this._getFirstLevelChildren(SELECTOR_ACTIVES).filter(element => element !== this._element).map(element => Collapse.getOrCreateInstance(element, {
+          toggle: false
+        }));
       }
 
-      const container = SelectorEngine.findOne(this._selector);
-
-      if (actives.length) {
-        const tempActiveData = actives.find(elem => container !== elem);
-        activesData = tempActiveData ? Collapse.getInstance(tempActiveData) : null;
-
-        if (activesData && activesData._isTransitioning) {
-          return;
-        }
+      if (activeChildren.length && activeChildren[0]._isTransitioning) {
+        return;
       }
 
       const startEvent = EventHandler.trigger(this._element, EVENT_SHOW$5);
@@ -1751,17 +1796,9 @@
         return;
       }
 
-      actives.forEach(elemActive => {
-        if (container !== elemActive) {
-          Collapse.getOrCreateInstance(elemActive, {
-            toggle: false
-          }).hide();
-        }
-
-        if (!activesData) {
-          Data.set(elemActive, DATA_KEY$9, null);
-        }
-      });
+      for (const activeInstance of activeChildren) {
+        activeInstance.hide();
+      }
 
       const dimension = this._getDimension();
 
@@ -1814,10 +1851,7 @@
 
       this._element.classList.remove(CLASS_NAME_COLLAPSE, CLASS_NAME_SHOW$7);
 
-      const triggerArrayLength = this._triggerArray.length;
-
-      for (let i = 0; i < triggerArrayLength; i++) {
-        const trigger = this._triggerArray[i];
+      for (const trigger of this._triggerArray) {
         const elem = getElementFromSelector(trigger);
 
         if (elem && !this._isShown(elem)) {
@@ -1868,14 +1902,21 @@
         return;
       }
 
-      const children = SelectorEngine.find(CLASS_NAME_DEEPER_CHILDREN, this._config.parent);
-      SelectorEngine.find(SELECTOR_DATA_TOGGLE$4, this._config.parent).filter(elem => !children.includes(elem)).forEach(element => {
+      const children = this._getFirstLevelChildren(SELECTOR_DATA_TOGGLE$4);
+
+      for (const element of children) {
         const selected = getElementFromSelector(element);
 
         if (selected) {
           this._addAriaAndCollapsedClass([element], this._isShown(selected));
         }
-      });
+      }
+    }
+
+    _getFirstLevelChildren(selector) {
+      const children = SelectorEngine.find(CLASS_NAME_DEEPER_CHILDREN, this._config.parent); // remove children if greater depth
+
+      return SelectorEngine.find(selector, this._config.parent).filter(elem => !children.includes(elem));
     }
 
     _addAriaAndCollapsedClass(triggerArray, isOpen) {
@@ -1883,7 +1924,7 @@
         return;
       }
 
-      triggerArray.forEach(elem => {
+      for (const elem of triggerArray) {
         if (isOpen) {
           elem.classList.remove(CLASS_NAME_COLLAPSED);
         } else {
@@ -1891,7 +1932,7 @@
         }
 
         elem.setAttribute('aria-expanded', isOpen);
-      });
+      }
     } // Static
 
 
@@ -1917,9 +1958,7 @@
 
   }
   /**
-   * ------------------------------------------------------------------------
-   * Data Api implementation
-   * ------------------------------------------------------------------------
+   * Data API implementation
    */
 
 
@@ -1931,17 +1970,15 @@
 
     const selector = getSelectorFromElement(this);
     const selectorElements = SelectorEngine.find(selector);
-    selectorElements.forEach(element => {
+
+    for (const element of selectorElements) {
       Collapse.getOrCreateInstance(element, {
         toggle: false
       }).toggle();
-    });
+    }
   });
   /**
-   * ------------------------------------------------------------------------
    * jQuery
-   * ------------------------------------------------------------------------
-   * add .Collapse to jQuery only if jQuery is present
    */
 
   defineJQueryPlugin(Collapse);
@@ -1953,9 +1990,7 @@
    * --------------------------------------------------------------------------
    */
   /**
-   * ------------------------------------------------------------------------
    * Constants
-   * ------------------------------------------------------------------------
    */
 
   const NAME$9 = 'dropdown';
@@ -2009,9 +2044,7 @@
     autoClose: '(boolean|string)'
   };
   /**
-   * ------------------------------------------------------------------------
-   * Class Definition
-   * ------------------------------------------------------------------------
+   * Class definition
    */
 
   class Dropdown extends BaseComponent {
@@ -2068,7 +2101,9 @@
 
 
       if ('ontouchstart' in document.documentElement && !parent.closest(SELECTOR_NAVBAR_NAV)) {
-        [].concat(...document.body.children).forEach(elem => EventHandler.on(elem, 'mouseover', noop));
+        for (const elem of [].concat(...document.body.children)) {
+          EventHandler.on(elem, 'mouseover', noop);
+        }
       }
 
       this._element.focus();
@@ -2121,7 +2156,9 @@
 
 
       if ('ontouchstart' in document.documentElement) {
-        [].concat(...document.body.children).forEach(elem => EventHandler.off(elem, 'mouseover', noop));
+        for (const elem of [].concat(...document.body.children)) {
+          EventHandler.off(elem, 'mouseover', noop);
+        }
       }
 
       if (this._popper) {
@@ -2259,7 +2296,7 @@
       key,
       target
     }) {
-      const items = SelectorEngine.find(SELECTOR_VISIBLE_ITEMS, this._menu).filter(isVisible);
+      const items = SelectorEngine.find(SELECTOR_VISIBLE_ITEMS, this._menu).filter(el => isVisible(el));
 
       if (!items.length) {
         return;
@@ -2294,8 +2331,8 @@
 
       const toggles = SelectorEngine.find(SELECTOR_DATA_TOGGLE$3);
 
-      for (let i = 0, len = toggles.length; i < len; i++) {
-        const context = Dropdown.getInstance(toggles[i]);
+      for (const toggle of toggles) {
+        const context = Dropdown.getInstance(toggle);
 
         if (!context || context._config.autoClose === false) {
           continue;
@@ -2385,9 +2422,7 @@
 
   }
   /**
-   * ------------------------------------------------------------------------
-   * Data Api implementation
-   * ------------------------------------------------------------------------
+   * Data API implementation
    */
 
 
@@ -2400,10 +2435,7 @@
     Dropdown.getOrCreateInstance(this).toggle();
   });
   /**
-   * ------------------------------------------------------------------------
    * jQuery
-   * ------------------------------------------------------------------------
-   * add .Dropdown to jQuery only if jQuery is present
    */
 
   defineJQueryPlugin(Dropdown);
@@ -2414,13 +2446,21 @@
    * Licensed under MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE)
    * --------------------------------------------------------------------------
    */
+  /**
+   * Constants
+   */
+
   const SELECTOR_FIXED_CONTENT = '.fixed-top, .fixed-bottom, .is-fixed, .sticky-top';
   const SELECTOR_STICKY_CONTENT = '.sticky-top';
+  /**
+   * Class definition
+   */
 
   class ScrollBarHelper {
     constructor() {
       this._element = document.body;
-    }
+    } // Public
+
 
     getWidth() {
       // https://developer.mozilla.org/en-US/docs/Web/API/Window/innerWidth#usage_notes
@@ -2441,6 +2481,21 @@
 
       this._setElementAttributes(SELECTOR_STICKY_CONTENT, 'marginRight', calculatedValue => calculatedValue - width);
     }
+
+    reset() {
+      this._resetElementAttributes(this._element, 'overflow');
+
+      this._resetElementAttributes(this._element, 'paddingRight');
+
+      this._resetElementAttributes(SELECTOR_FIXED_CONTENT, 'paddingRight');
+
+      this._resetElementAttributes(SELECTOR_STICKY_CONTENT, 'marginRight');
+    }
+
+    isOverflowing() {
+      return this.getWidth() > 0;
+    } // Private
+
 
     _disableOverFlow() {
       this._saveInitialAttribute(this._element, 'overflow');
@@ -2463,16 +2518,6 @@
       };
 
       this._applyManipulationCallback(selector, manipulationCallBack);
-    }
-
-    reset() {
-      this._resetElementAttributes(this._element, 'overflow');
-
-      this._resetElementAttributes(this._element, 'paddingRight');
-
-      this._resetElementAttributes(SELECTOR_FIXED_CONTENT, 'paddingRight');
-
-      this._resetElementAttributes(SELECTOR_STICKY_CONTENT, 'marginRight');
     }
 
     _saveInitialAttribute(element, styleProp) {
@@ -2502,12 +2547,10 @@
       if (isElement(selector)) {
         callBack(selector);
       } else {
-        SelectorEngine.find(selector, this._element).forEach(callBack);
+        for (const sel of SelectorEngine.find(selector, this._element)) {
+          callBack(sel);
+        }
       }
-    }
-
-    isOverflowing() {
-      return this.getWidth() > 0;
     }
 
   }
@@ -2518,6 +2561,14 @@
    * Licensed under MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE)
    * --------------------------------------------------------------------------
    */
+  /**
+   * Constants
+   */
+
+  const NAME$8 = 'backdrop';
+  const CLASS_NAME_FADE$4 = 'fade';
+  const CLASS_NAME_SHOW$5 = 'show';
+  const EVENT_MOUSEDOWN = `mousedown.bs.${NAME$8}`;
   const Default$7 = {
     className: 'modal-backdrop',
     isVisible: true,
@@ -2534,17 +2585,17 @@
     rootElement: '(element|string)',
     clickCallback: '(function|null)'
   };
-  const NAME$8 = 'backdrop';
-  const CLASS_NAME_FADE$4 = 'fade';
-  const CLASS_NAME_SHOW$5 = 'show';
-  const EVENT_MOUSEDOWN = `mousedown.bs.${NAME$8}`;
+  /**
+   * Class definition
+   */
 
   class Backdrop {
     constructor(config) {
       this._config = this._getConfig(config);
       this._isAppended = false;
       this._element = null;
-    }
+    } // Public
+
 
     show(callback) {
       if (!this._config.isVisible) {
@@ -2577,6 +2628,18 @@
         this.dispose();
         execute(callback);
       });
+    }
+
+    dispose() {
+      if (!this._isAppended) {
+        return;
+      }
+
+      EventHandler.off(this._element, EVENT_MOUSEDOWN);
+
+      this._element.remove();
+
+      this._isAppended = false;
     } // Private
 
 
@@ -2618,18 +2681,6 @@
       this._isAppended = true;
     }
 
-    dispose() {
-      if (!this._isAppended) {
-        return;
-      }
-
-      EventHandler.off(this._element, EVENT_MOUSEDOWN);
-
-      this._element.remove();
-
-      this._isAppended = false;
-    }
-
     _emulateAnimation(callback) {
       executeAfterTransition(callback, this._getElement(), this._config.isAnimated);
     }
@@ -2642,6 +2693,18 @@
    * Licensed under MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE)
    * --------------------------------------------------------------------------
    */
+  /**
+   * Constants
+   */
+
+  const NAME$7 = 'focustrap';
+  const DATA_KEY$7 = 'bs.focustrap';
+  const EVENT_KEY$7 = `.${DATA_KEY$7}`;
+  const EVENT_FOCUSIN$1 = `focusin${EVENT_KEY$7}`;
+  const EVENT_KEYDOWN_TAB = `keydown.tab${EVENT_KEY$7}`;
+  const TAB_KEY = 'Tab';
+  const TAB_NAV_FORWARD = 'forward';
+  const TAB_NAV_BACKWARD = 'backward';
   const Default$6 = {
     trapElement: null,
     // The element to trap focus inside of
@@ -2651,21 +2714,17 @@
     trapElement: 'element',
     autofocus: 'boolean'
   };
-  const NAME$7 = 'focustrap';
-  const DATA_KEY$7 = 'bs.focustrap';
-  const EVENT_KEY$7 = `.${DATA_KEY$7}`;
-  const EVENT_FOCUSIN$1 = `focusin${EVENT_KEY$7}`;
-  const EVENT_KEYDOWN_TAB = `keydown.tab${EVENT_KEY$7}`;
-  const TAB_KEY = 'Tab';
-  const TAB_NAV_FORWARD = 'forward';
-  const TAB_NAV_BACKWARD = 'backward';
+  /**
+   * Class definition
+   */
 
   class FocusTrap {
     constructor(config) {
       this._config = this._getConfig(config);
       this._isActive = false;
       this._lastTabNavDirection = null;
-    }
+    } // Public
+
 
     activate() {
       const {
@@ -2746,9 +2805,7 @@
    * --------------------------------------------------------------------------
    */
   /**
-   * ------------------------------------------------------------------------
    * Constants
-   * ------------------------------------------------------------------------
    */
 
   const NAME$6 = 'modal';
@@ -2756,16 +2813,6 @@
   const EVENT_KEY$6 = `.${DATA_KEY$6}`;
   const DATA_API_KEY$3 = '.data-api';
   const ESCAPE_KEY$1 = 'Escape';
-  const Default$5 = {
-    backdrop: true,
-    keyboard: true,
-    focus: true
-  };
-  const DefaultType$5 = {
-    backdrop: '(boolean|string)',
-    keyboard: 'boolean',
-    focus: 'boolean'
-  };
   const EVENT_HIDE$3 = `hide${EVENT_KEY$6}`;
   const EVENT_HIDE_PREVENTED = `hidePrevented${EVENT_KEY$6}`;
   const EVENT_HIDDEN$3 = `hidden${EVENT_KEY$6}`;
@@ -2785,10 +2832,18 @@
   const SELECTOR_DIALOG = '.modal-dialog';
   const SELECTOR_MODAL_BODY = '.modal-body';
   const SELECTOR_DATA_TOGGLE$2 = '[data-bs-toggle="modal"]';
+  const Default$5 = {
+    backdrop: true,
+    keyboard: true,
+    focus: true
+  };
+  const DefaultType$5 = {
+    backdrop: '(boolean|string)',
+    keyboard: 'boolean',
+    focus: 'boolean'
+  };
   /**
-   * ------------------------------------------------------------------------
-   * Class Definition
-   * ------------------------------------------------------------------------
+   * Class definition
    */
 
   class Modal extends BaseComponent {
@@ -2892,7 +2947,9 @@
     }
 
     dispose() {
-      [window, this._dialog].forEach(htmlElement => EventHandler.off(htmlElement, EVENT_KEY$6));
+      for (const htmlElement of [window, this._dialog]) {
+        EventHandler.off(htmlElement, EVENT_KEY$6);
+      }
 
       this._backdrop.dispose();
 
@@ -3078,9 +3135,10 @@
       }, this._dialog);
 
       this._element.focus();
-    } // ----------------------------------------------------------------------
-    // the following methods are used to handle overflowing modals
-    // ----------------------------------------------------------------------
+    }
+    /**
+     * The following methods are used to handle overflowing modals
+     */
 
 
     _adjustDialog() {
@@ -3123,9 +3181,7 @@
 
   }
   /**
-   * ------------------------------------------------------------------------
-   * Data Api implementation
-   * ------------------------------------------------------------------------
+   * Data API implementation
    */
 
 
@@ -3160,10 +3216,7 @@
   });
   enableDismissTrigger(Modal);
   /**
-   * ------------------------------------------------------------------------
    * jQuery
-   * ------------------------------------------------------------------------
-   * add .Modal to jQuery only if jQuery is present
    */
 
   defineJQueryPlugin(Modal);
@@ -3175,9 +3228,7 @@
    * --------------------------------------------------------------------------
    */
   /**
-   * ------------------------------------------------------------------------
    * Constants
-   * ------------------------------------------------------------------------
    */
 
   const NAME$5 = 'offcanvas';
@@ -3186,16 +3237,6 @@
   const DATA_API_KEY$2 = '.data-api';
   const EVENT_LOAD_DATA_API$1 = `load${EVENT_KEY$5}${DATA_API_KEY$2}`;
   const ESCAPE_KEY = 'Escape';
-  const Default$4 = {
-    backdrop: true,
-    keyboard: true,
-    scroll: false
-  };
-  const DefaultType$4 = {
-    backdrop: 'boolean',
-    keyboard: 'boolean',
-    scroll: 'boolean'
-  };
   const CLASS_NAME_SHOW$3 = 'show';
   const CLASS_NAME_BACKDROP = 'offcanvas-backdrop';
   const OPEN_SELECTOR = '.offcanvas.show';
@@ -3206,10 +3247,18 @@
   const EVENT_CLICK_DATA_API$1 = `click${EVENT_KEY$5}${DATA_API_KEY$2}`;
   const EVENT_KEYDOWN_DISMISS = `keydown.dismiss${EVENT_KEY$5}`;
   const SELECTOR_DATA_TOGGLE$1 = '[data-bs-toggle="offcanvas"]';
+  const Default$4 = {
+    backdrop: true,
+    keyboard: true,
+    scroll: false
+  };
+  const DefaultType$4 = {
+    backdrop: 'boolean',
+    keyboard: 'boolean',
+    scroll: 'boolean'
+  };
   /**
-   * ------------------------------------------------------------------------
-   * Class Definition
-   * ------------------------------------------------------------------------
+   * Class definition
    */
 
   class Offcanvas extends BaseComponent {
@@ -3381,9 +3430,7 @@
 
   }
   /**
-   * ------------------------------------------------------------------------
-   * Data Api implementation
-   * ------------------------------------------------------------------------
+   * Data API implementation
    */
 
 
@@ -3405,21 +3452,23 @@
       }
     }); // avoid conflict when clicking a toggler of an offcanvas, while another is open
 
-    const allReadyOpen = SelectorEngine.findOne(OPEN_SELECTOR);
+    const alreadyOpen = SelectorEngine.findOne(OPEN_SELECTOR);
 
-    if (allReadyOpen && allReadyOpen !== target) {
-      Offcanvas.getInstance(allReadyOpen).hide();
+    if (alreadyOpen && alreadyOpen !== target) {
+      Offcanvas.getInstance(alreadyOpen).hide();
     }
 
     const data = Offcanvas.getOrCreateInstance(target);
     data.toggle(this);
   });
-  EventHandler.on(window, EVENT_LOAD_DATA_API$1, () => SelectorEngine.find(OPEN_SELECTOR).forEach(el => Offcanvas.getOrCreateInstance(el).show()));
+  EventHandler.on(window, EVENT_LOAD_DATA_API$1, () => {
+    for (const el of SelectorEngine.find(OPEN_SELECTOR)) {
+      Offcanvas.getOrCreateInstance(el).show();
+    }
+  });
   enableDismissTrigger(Offcanvas);
   /**
-   * ------------------------------------------------------------------------
    * jQuery
-   * ------------------------------------------------------------------------
    */
 
   defineJQueryPlugin(Offcanvas);
@@ -3456,17 +3505,10 @@
       }
 
       return true;
-    }
+    } // Check if a regular expression validates the attribute.
 
-    const regExp = allowedAttributeList.filter(attributeRegex => attributeRegex instanceof RegExp); // Check if a regular expression validates the attribute.
 
-    for (let i = 0, len = regExp.length; i < len; i++) {
-      if (regExp[i].test(attributeName)) {
-        return true;
-      }
-    }
-
-    return false;
+    return allowedAttributeList.filter(attributeRegex => attributeRegex instanceof RegExp).some(regex => regex.test(attributeName));
   };
 
   const DefaultAllowlist = {
@@ -3515,8 +3557,7 @@
     const createdDocument = domParser.parseFromString(unsafeHtml, 'text/html');
     const elements = [].concat(...createdDocument.body.querySelectorAll('*'));
 
-    for (let i = 0, len = elements.length; i < len; i++) {
-      const element = elements[i];
+    for (const element of elements) {
       const elementName = element.nodeName.toLowerCase();
 
       if (!Object.keys(allowList).includes(elementName)) {
@@ -3526,11 +3567,12 @@
 
       const attributeList = [].concat(...element.attributes);
       const allowedAttributes = [].concat(allowList['*'] || [], allowList[elementName] || []);
-      attributeList.forEach(attribute => {
+
+      for (const attribute of attributeList) {
         if (!allowedAttribute(attribute, allowedAttributes)) {
           element.removeAttribute(attribute.nodeName);
         }
-      });
+      }
     }
 
     return createdDocument.body.innerHTML;
@@ -3543,9 +3585,7 @@
    * --------------------------------------------------------------------------
    */
   /**
-   * ------------------------------------------------------------------------
    * Constants
-   * ------------------------------------------------------------------------
    */
 
   const NAME$4 = 'tooltip';
@@ -3553,25 +3593,18 @@
   const EVENT_KEY$4 = `.${DATA_KEY$4}`;
   const CLASS_PREFIX$1 = 'bs-tooltip';
   const DISALLOWED_ATTRIBUTES = new Set(['sanitize', 'allowList', 'sanitizeFn']);
-  const DefaultType$3 = {
-    animation: 'boolean',
-    template: 'string',
-    title: '(string|element|function)',
-    trigger: 'string',
-    delay: '(number|object)',
-    html: 'boolean',
-    selector: '(string|boolean)',
-    placement: '(string|function)',
-    offset: '(array|string|function)',
-    container: '(string|element|boolean)',
-    fallbackPlacements: 'array',
-    boundary: '(string|element)',
-    customClass: '(string|function)',
-    sanitize: 'boolean',
-    sanitizeFn: '(null|function)',
-    allowList: 'object',
-    popperConfig: '(null|object|function)'
-  };
+  const CLASS_NAME_FADE$2 = 'fade';
+  const CLASS_NAME_MODAL = 'modal';
+  const CLASS_NAME_SHOW$2 = 'show';
+  const HOVER_STATE_SHOW = 'show';
+  const HOVER_STATE_OUT = 'out';
+  const SELECTOR_TOOLTIP_INNER = '.tooltip-inner';
+  const SELECTOR_MODAL = `.${CLASS_NAME_MODAL}`;
+  const EVENT_MODAL_HIDE = 'hide.bs.modal';
+  const TRIGGER_HOVER = 'hover';
+  const TRIGGER_FOCUS = 'focus';
+  const TRIGGER_CLICK = 'click';
+  const TRIGGER_MANUAL = 'manual';
   const AttachmentMap = {
     AUTO: 'auto',
     TOP: 'top',
@@ -3598,6 +3631,25 @@
     allowList: DefaultAllowlist,
     popperConfig: null
   };
+  const DefaultType$3 = {
+    animation: 'boolean',
+    template: 'string',
+    title: '(string|element|function)',
+    trigger: 'string',
+    delay: '(number|object)',
+    html: 'boolean',
+    selector: '(string|boolean)',
+    placement: '(string|function)',
+    offset: '(array|string|function)',
+    container: '(string|element|boolean)',
+    fallbackPlacements: 'array',
+    boundary: '(string|element)',
+    customClass: '(string|function)',
+    sanitize: 'boolean',
+    sanitizeFn: '(null|function)',
+    allowList: 'object',
+    popperConfig: '(null|object|function)'
+  };
   const Event$2 = {
     HIDE: `hide${EVENT_KEY$4}`,
     HIDDEN: `hidden${EVENT_KEY$4}`,
@@ -3610,22 +3662,8 @@
     MOUSEENTER: `mouseenter${EVENT_KEY$4}`,
     MOUSELEAVE: `mouseleave${EVENT_KEY$4}`
   };
-  const CLASS_NAME_FADE$2 = 'fade';
-  const CLASS_NAME_MODAL = 'modal';
-  const CLASS_NAME_SHOW$2 = 'show';
-  const HOVER_STATE_SHOW = 'show';
-  const HOVER_STATE_OUT = 'out';
-  const SELECTOR_TOOLTIP_INNER = '.tooltip-inner';
-  const SELECTOR_MODAL = `.${CLASS_NAME_MODAL}`;
-  const EVENT_MODAL_HIDE = 'hide.bs.modal';
-  const TRIGGER_HOVER = 'hover';
-  const TRIGGER_FOCUS = 'focus';
-  const TRIGGER_CLICK = 'click';
-  const TRIGGER_MANUAL = 'manual';
   /**
-   * ------------------------------------------------------------------------
-   * Class Definition
-   * ------------------------------------------------------------------------
+   * Class definition
    */
 
   class Tooltip extends BaseComponent {
@@ -3634,7 +3672,7 @@
         throw new TypeError('Bootstrap\'s tooltips require Popper (https://popper.js.org)');
       }
 
-      super(element); // private
+      super(element); // Private
 
       this._isEnabled = true;
       this._timeout = 0;
@@ -3788,9 +3826,9 @@
 
 
       if ('ontouchstart' in document.documentElement) {
-        [].concat(...document.body.children).forEach(element => {
+        for (const element of [].concat(...document.body.children)) {
           EventHandler.on(element, 'mouseover', noop);
-        });
+        }
       }
 
       const complete = () => {
@@ -3843,7 +3881,9 @@
       // empty mouseover listeners we added for iOS support
 
       if ('ontouchstart' in document.documentElement) {
-        [].concat(...document.body.children).forEach(element => EventHandler.off(element, 'mouseover', noop));
+        for (const element of [].concat(...document.body.children)) {
+          EventHandler.off(element, 'mouseover', noop);
+        }
       }
 
       this._activeTrigger[TRIGGER_CLICK] = false;
@@ -3922,7 +3962,7 @@
           content = sanitizeHtml(content, this._config.allowList, this._config.sanitizeFn);
         }
 
-        element.innerHTML = content;
+        element.innerHTML = content; // lgtm [js/xss-through-dom]
       } else {
         element.textContent = content;
       }
@@ -4022,7 +4062,7 @@
     _setListeners() {
       const triggers = this._config.trigger.split(' ');
 
-      triggers.forEach(trigger => {
+      for (const trigger of triggers) {
         if (trigger === 'click') {
           EventHandler.on(this._element, this.constructor.Event.CLICK, this._config.selector, event => this.toggle(event));
         } else if (trigger !== TRIGGER_MANUAL) {
@@ -4031,7 +4071,7 @@
           EventHandler.on(this._element, eventIn, this._config.selector, event => this._enter(event));
           EventHandler.on(this._element, eventOut, this._config.selector, event => this._leave(event));
         }
-      });
+      }
 
       this._hideModalHandler = () => {
         if (this._element) {
@@ -4132,11 +4172,13 @@
 
     _getConfig(config) {
       const dataAttributes = Manipulator.getDataAttributes(this._element);
-      Object.keys(dataAttributes).forEach(dataAttr => {
+
+      for (const dataAttr of Object.keys(dataAttributes)) {
         if (DISALLOWED_ATTRIBUTES.has(dataAttr)) {
           delete dataAttributes[dataAttr];
         }
-      });
+      }
+
       config = { ...this.constructor.Default,
         ...dataAttributes,
         ...(typeof config === 'object' && config ? config : {})
@@ -4188,7 +4230,9 @@
       const tabClass = tip.getAttribute('class').match(basicClassPrefixRegex);
 
       if (tabClass !== null && tabClass.length > 0) {
-        tabClass.map(token => token.trim()).forEach(tClass => tip.classList.remove(tClass));
+        for (const tClass of tabClass.map(token => token.trim())) {
+          tip.classList.remove(tClass);
+        }
       }
     }
 
@@ -4237,10 +4281,7 @@
 
   }
   /**
-   * ------------------------------------------------------------------------
    * jQuery
-   * ------------------------------------------------------------------------
-   * add .Tooltip to jQuery only if jQuery is present
    */
 
 
@@ -4253,15 +4294,15 @@
    * --------------------------------------------------------------------------
    */
   /**
-   * ------------------------------------------------------------------------
    * Constants
-   * ------------------------------------------------------------------------
    */
 
   const NAME$3 = 'popover';
   const DATA_KEY$3 = 'bs.popover';
   const EVENT_KEY$3 = `.${DATA_KEY$3}`;
   const CLASS_PREFIX = 'bs-popover';
+  const SELECTOR_TITLE = '.popover-header';
+  const SELECTOR_CONTENT = '.popover-body';
   const Default$2 = { ...Tooltip.Default,
     placement: 'right',
     offset: [0, 8],
@@ -4284,12 +4325,8 @@
     MOUSEENTER: `mouseenter${EVENT_KEY$3}`,
     MOUSELEAVE: `mouseleave${EVENT_KEY$3}`
   };
-  const SELECTOR_TITLE = '.popover-header';
-  const SELECTOR_CONTENT = '.popover-body';
   /**
-   * ------------------------------------------------------------------------
-   * Class Definition
-   * ------------------------------------------------------------------------
+   * Class definition
    */
 
   class Popover extends Tooltip {
@@ -4347,10 +4384,7 @@
 
   }
   /**
-   * ------------------------------------------------------------------------
    * jQuery
-   * ------------------------------------------------------------------------
-   * add .Popover to jQuery only if jQuery is present
    */
 
 
@@ -4363,25 +4397,13 @@
    * --------------------------------------------------------------------------
    */
   /**
-   * ------------------------------------------------------------------------
    * Constants
-   * ------------------------------------------------------------------------
    */
 
   const NAME$2 = 'scrollspy';
   const DATA_KEY$2 = 'bs.scrollspy';
   const EVENT_KEY$2 = `.${DATA_KEY$2}`;
   const DATA_API_KEY$1 = '.data-api';
-  const Default$1 = {
-    offset: 10,
-    method: 'auto',
-    target: ''
-  };
-  const DefaultType$1 = {
-    offset: 'number',
-    method: 'string',
-    target: '(string|element)'
-  };
   const EVENT_ACTIVATE = `activate${EVENT_KEY$2}`;
   const EVENT_SCROLL = `scroll${EVENT_KEY$2}`;
   const EVENT_LOAD_DATA_API = `load${EVENT_KEY$2}${DATA_API_KEY$1}`;
@@ -4397,10 +4419,18 @@
   const SELECTOR_DROPDOWN_TOGGLE$1 = '.dropdown-toggle';
   const METHOD_OFFSET = 'offset';
   const METHOD_POSITION = 'position';
+  const Default$1 = {
+    offset: 10,
+    method: 'auto',
+    target: ''
+  };
+  const DefaultType$1 = {
+    offset: 'number',
+    method: 'string',
+    target: '(string|element)'
+  };
   /**
-   * ------------------------------------------------------------------------
-   * Class Definition
-   * ------------------------------------------------------------------------
+   * Class definition
    */
 
   class ScrollSpy extends BaseComponent {
@@ -4435,8 +4465,7 @@
       this._offsets = [];
       this._targets = [];
       this._scrollHeight = this._getScrollHeight();
-      const targets = SelectorEngine.find(SELECTOR_LINK_ITEMS, this._config.target);
-      targets.map(element => {
+      const targets = SelectorEngine.find(SELECTOR_LINK_ITEMS, this._config.target).map(element => {
         const targetSelector = getSelectorFromElement(element);
         const target = targetSelector ? SelectorEngine.findOne(targetSelector) : null;
 
@@ -4449,11 +4478,13 @@
         }
 
         return null;
-      }).filter(item => item).sort((a, b) => a[0] - b[0]).forEach(item => {
+      }).filter(item => item).sort((a, b) => a[0] - b[0]);
+
+      for (const item of targets) {
         this._offsets.push(item[0]);
 
         this._targets.push(item[1]);
-      });
+      }
     }
 
     dispose() {
@@ -4534,15 +4565,20 @@
       if (link.classList.contains(CLASS_NAME_DROPDOWN_ITEM)) {
         SelectorEngine.findOne(SELECTOR_DROPDOWN_TOGGLE$1, link.closest(SELECTOR_DROPDOWN$1)).classList.add(CLASS_NAME_ACTIVE$1);
       } else {
-        SelectorEngine.parents(link, SELECTOR_NAV_LIST_GROUP$1).forEach(listGroup => {
+        for (const listGroup of SelectorEngine.parents(link, SELECTOR_NAV_LIST_GROUP$1)) {
           // Set triggered links parents as active
           // With both <ul> and <nav> markup a parent is the previous sibling of any nav ancestor
-          SelectorEngine.prev(listGroup, `${SELECTOR_NAV_LINKS}, ${SELECTOR_LIST_ITEMS}`).forEach(item => item.classList.add(CLASS_NAME_ACTIVE$1)); // Handle special case when .nav-link is inside .nav-item
+          for (const item of SelectorEngine.prev(listGroup, `${SELECTOR_NAV_LINKS}, ${SELECTOR_LIST_ITEMS}`)) {
+            item.classList.add(CLASS_NAME_ACTIVE$1);
+          } // Handle special case when .nav-link is inside .nav-item
 
-          SelectorEngine.prev(listGroup, SELECTOR_NAV_ITEMS).forEach(navItem => {
-            SelectorEngine.children(navItem, SELECTOR_NAV_LINKS).forEach(item => item.classList.add(CLASS_NAME_ACTIVE$1));
-          });
-        });
+
+          for (const navItem of SelectorEngine.prev(listGroup, SELECTOR_NAV_ITEMS)) {
+            for (const item of SelectorEngine.children(navItem, SELECTOR_NAV_LINKS)) {
+              item.classList.add(CLASS_NAME_ACTIVE$1);
+            }
+          }
+        }
       }
 
       EventHandler.trigger(this._scrollElement, EVENT_ACTIVATE, {
@@ -4551,7 +4587,11 @@
     }
 
     _clear() {
-      SelectorEngine.find(SELECTOR_LINK_ITEMS, this._config.target).filter(node => node.classList.contains(CLASS_NAME_ACTIVE$1)).forEach(node => node.classList.remove(CLASS_NAME_ACTIVE$1));
+      const activeNodes = SelectorEngine.find(SELECTOR_LINK_ITEMS, this._config.target).filter(node => node.classList.contains(CLASS_NAME_ACTIVE$1));
+
+      for (const node of activeNodes) {
+        node.classList.remove(CLASS_NAME_ACTIVE$1);
+      }
     } // Static
 
 
@@ -4573,20 +4613,17 @@
 
   }
   /**
-   * ------------------------------------------------------------------------
-   * Data Api implementation
-   * ------------------------------------------------------------------------
+   * Data API implementation
    */
 
 
   EventHandler.on(window, EVENT_LOAD_DATA_API, () => {
-    SelectorEngine.find(SELECTOR_DATA_SPY).forEach(spy => new ScrollSpy(spy));
+    for (const spy of SelectorEngine.find(SELECTOR_DATA_SPY)) {
+      new ScrollSpy(spy); // eslint-disable-line no-new
+    }
   });
   /**
-   * ------------------------------------------------------------------------
    * jQuery
-   * ------------------------------------------------------------------------
-   * add .ScrollSpy to jQuery only if jQuery is present
    */
 
   defineJQueryPlugin(ScrollSpy);
@@ -4598,9 +4635,7 @@
    * --------------------------------------------------------------------------
    */
   /**
-   * ------------------------------------------------------------------------
    * Constants
-   * ------------------------------------------------------------------------
    */
 
   const NAME$1 = 'tab';
@@ -4624,9 +4659,7 @@
   const SELECTOR_DROPDOWN_TOGGLE = '.dropdown-toggle';
   const SELECTOR_DROPDOWN_ACTIVE_CHILD = ':scope > .dropdown-menu .active';
   /**
-   * ------------------------------------------------------------------------
-   * Class Definition
-   * ------------------------------------------------------------------------
+   * Class definition
    */
 
   class Tab extends BaseComponent {
@@ -4734,7 +4767,9 @@
         const dropdownElement = element.closest(SELECTOR_DROPDOWN);
 
         if (dropdownElement) {
-          SelectorEngine.find(SELECTOR_DROPDOWN_TOGGLE, dropdownElement).forEach(dropdown => dropdown.classList.add(CLASS_NAME_ACTIVE));
+          for (const dropdown of SelectorEngine.find(SELECTOR_DROPDOWN_TOGGLE, dropdownElement)) {
+            dropdown.classList.add(CLASS_NAME_ACTIVE);
+          }
         }
 
         element.setAttribute('aria-expanded', true);
@@ -4762,9 +4797,7 @@
 
   }
   /**
-   * ------------------------------------------------------------------------
-   * Data Api implementation
-   * ------------------------------------------------------------------------
+   * Data API implementation
    */
 
 
@@ -4781,10 +4814,7 @@
     data.show();
   });
   /**
-   * ------------------------------------------------------------------------
    * jQuery
-   * ------------------------------------------------------------------------
-   * add .Tab to jQuery only if jQuery is present
    */
 
   defineJQueryPlugin(Tab);
@@ -4796,9 +4826,7 @@
    * --------------------------------------------------------------------------
    */
   /**
-   * ------------------------------------------------------------------------
    * Constants
-   * ------------------------------------------------------------------------
    */
 
   const NAME = 'toast';
@@ -4828,9 +4856,7 @@
     delay: 5000
   };
   /**
-   * ------------------------------------------------------------------------
-   * Class Definition
-   * ------------------------------------------------------------------------
+   * Class definition
    */
 
   class Toast extends BaseComponent {
@@ -5008,13 +5034,14 @@
     }
 
   }
+  /**
+   * Data API implementation
+   */
+
 
   enableDismissTrigger(Toast);
   /**
-   * ------------------------------------------------------------------------
    * jQuery
-   * ------------------------------------------------------------------------
-   * add .Toast to jQuery only if jQuery is present
    */
 
   defineJQueryPlugin(Toast);
